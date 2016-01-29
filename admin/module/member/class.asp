@@ -117,12 +117,17 @@ END SUB : CALL c_Member.createMethod("Login",FALSE)
 FUNCTION c_Member_GrabLoggedInMember(this,oParams)
   DIM iID     : iID     = iReturnNumber(REQUEST.COOKIES(this.Var("MemberID_Cookie")))
   DIM sSQL
+  DIM oMember
 
   'set up sql
   sSQL = "SELECT * FROM " & this.Var("Table") & " WHERE " & this.Var("PrimaryKey") & "=" & iReturnNumber(iID)
 
+  SET oMember = this.run("FindBySQL",sSQL)
+
+  IF ( oMember IS NOTHING ) THEN SET oMember = this.new("")
+
   'return new Object
-  SET c_Member_GrabLoggedInMember = this.run("FindBySQL",sSQL)
+  SET c_Member_GrabLoggedInMember = oMember
 END FUNCTION : CALL c_Member.createMethod("GrabLoggedInMember",TRUE)
 
 '--------------------------------------------------------
