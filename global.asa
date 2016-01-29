@@ -1,0 +1,28 @@
+<SCRIPT LANGUAGE="VBSCRIPT" RUNAT="SERVER">
+
+SUB SESSION_ONSTART
+	SESSION.LCID = 3081
+
+END SUB
+
+SUB APPLICATION_ONSTART
+	'private key
+	APPLICATION("PrivateKey")									= "simp dev mifish"
+
+  'set site name
+  APPLICATION("SiteName")                   = "Simplistik Design"
+
+  'set site url
+  APPLICATION("SiteURL")                    = "http://localhost"
+  APPLICATION("AdminRoot")                  = "admin"
+
+
+  'uploads path
+  APPLICATION("WaypointsUpload")          	= "/uploads/waypoints"
+
+  'set site url
+  'APPLICATION("ConString")                  = "Driver={MySQL ODBC 5.1 Driver};Server=localhost;uid=simplistik;pwd=u78FiU70Pi;database=simplistik;"
+  'APPLICATION("ConString")                  = "DRIVER={SQL SERVER};SERVER=IMACVM-1A579161\SQLEXPRESS;uid=simplistik;pwd=u78FiU70Pi;database=simplistik"
+	APPLICATION("ConString")									= "PROVIDER=Microsoft.Jet.OLEDB.4.0;DATA SOURCE=" & SERVER.MAPPATH("\") & "\admin\database\database.mdb;"
+END SUB
+</SCRIPT>

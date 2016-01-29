@@ -1,0 +1,71 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <base href="http://localhost/" />
+  <title>Product preview</title>
+  <link rel="stylesheet" href="css/screen.css" type="text/css" media="screen, projection" charset="utf-8" />
+  <script type="text/javascript" src="js/jquery-min.js" charset="utf-8"></script>
+  <script type="text/javascript" src="js/thickbox.js" charset="utf-8"></script>
+  <script type="text/javascript" src="js/script.js" charset="utf-8"></script>
+  <script type="text/javascript" src="http://www.webfirm.com.au/Scripts/JavaScript/ValFuncs.js" charset="utf-8"></script>
+  <script type="text/javascript" src="http://www.webfirm.com.au/JavaScript/swfobject.js" charset="utf-8"></script>
+  <!--sIFR-->
+  <script type="text/javascript" src="js/sIFR/sifr.js" charset="utf-8"></script>
+  <script type="text/javascript" src="js/sIFR/sifr-debug.js" charset="utf-8"></script>
+  <script type="text/javascript" src="js/sIFR/sifr-config.js" charset="utf-8"></script>
+  
+  <script type="text/javascript" src="admin/JavaScript/tiny_mce/tiny_mce_popup.js"></script>
+  <script type="text/javascript" src="admin/JavaScript/tiny_mce/plugins/preview/jscripts/embed.js"></script>
+</head>
+<body id="products-page">
+<div id="container">
+	<div id="mainpage">
+		<!--crumbs-->
+		<div class="crumbs"><strong>Section title</strong></div>
+		<!--contents-->
+		<div class="contents">
+			<div class="box spaced">
+				<h5>How can acQuire work for you?</h5>
+				<form id="Selector" class="cmxform" method="get" action="work-for-you.asp">
+				<fieldset>
+				<ol>
+					<li>
+						<label for="Company_Size">Company Size</label>
+						<select id="Company_Size" name="iCompanySizeID">
+              <option>Just a preview file</option>
+						</select>
+
+					</li>
+					<li>
+						<label for="Industry">Industry</label>
+						<select id="Industry" name="iIndustryID">
+              <option>Just a preview file</option>
+						</select>
+
+					</li>
+					<li>
+						<label for="Mining_Stage">Mining Stage</label>
+						<select id="Mining_Stage" name="iMiningID">
+              <option>Just a preview file</option>
+						</select>
+					</li>
+					<li><input type="submit" name="Submit" value="Get Info" class="send" onclick="return false;" /></li>
+				</ol>
+				</fieldset>
+				</form>
+			</div>
+			<h1>Section Name</h1>
+      <div id="details">
+
+        <!--<h2>acQuire Client</h2>-->
+
+        <script type="text/javascript">
+          document.write(tinyMCEPopup.editor.getContent());
+        </script>
+			</div>
+      <p class="back">&lsaquo; <a href="#" onclick="return false;">Back</a></p>
+		</div>
+	</div>
+</div>
+</body>
+</html>

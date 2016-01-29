@@ -1,0 +1,18 @@
+documentation for colorbox can be found here
+http://colorpowered.com/colorbox/
+
+Standard class selector of "colorbox_page" is built into the core.js (page links only)
+EXAMPLE
+<a href="page/url/" class="colorbox_page">page name</a>
+** giving an <a> tag a class of "colorbox_page", will allow you to open up external pages in colorbox. perfect for tesrms and conditions. and others like it.
+
+Standard class selector of "colorbox_image" is built into the core.js (images only)
+EXAMPLE
+<a href="img/url/large" class="colorbox_image"><img src="img/url/small" alt="ALT TEXT" width="114" height="41" /></a>
+** giving an <a> tag a class of "colorbox_image", will get the image to open in colorbox
+
+adding a rel
+EXAMPLE
+<a href="img/url/large" class="colorbox_image" rel="gallery"><img src="img/url/small" alt="ALT TEXT" width="114" height="41" /></a>
+<a href="img/url/large" class="colorbox_image" rel="gallery"><img src="img/url/small" alt="ALT TEXT" width="114" height="41" /></a>
+** giving a group of images the same rel will allow you to navigate through them through the use of colorbox

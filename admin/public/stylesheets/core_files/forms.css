@@ -1,0 +1,117 @@
+.baseform fieldset { 
+  border: 1px solid #DFDFDF;
+  display: block;
+  width: 740px;
+  margin: 0 auto;
+}
+
+.baseform fieldset .margin {
+  margin: 10px;
+}
+
+.baseform fieldset .padding {
+  padding: 10px;
+}
+
+.baseform fieldset .title {
+  font-size: 18px;
+  border-bottom: 1px solid #DFDFDF;
+  margin: 0 0 10px 0;
+  background: #006194;
+  color: #FFFFFF;
+}
+
+.baseform fieldset ol, .baseform fieldset ul {
+  list-style-type: none !important;
+}
+
+.baseform fieldset li {
+  margin: 5px 0 20px 0!important;
+  list-style-type: none !important;
+  position: relative;
+}
+
+.baseform fieldset li.address {
+  margin-bottom: 0;
+  line-height: 15px;
+}
+
+.baseform fieldset label {
+  padding-right: 5px;
+	display: inline-block;
+	vertical-align: top;
+	width: 100px;
+}
+
+.baseform fieldset input[type="text"], .baseform fieldset textarea , .baseform fieldset select, .baseform fieldset  .linke_input  {
+  border: 1px solid #999999;
+	font-size: 12px;
+  padding: 7px;
+  width: 250px;
+}
+
+.baseform fieldset li.date_time input[type="text"], .baseform fieldset li.date_time select {
+  width: 60px;
+}
+
+.baseform fieldset li div {
+  margin: 0 0 10px 0;
+}
+
+.baseform fieldset  .linke_input {
+  display: inline-block;
+  margin: 0 0 0 4px;
+}
+
+.baseform fieldset select {
+  width: 265px;
+}
+
+.baseform fieldset textarea {
+  height: 150px;
+}
+
+.baseform fieldset input[type="text"]:focus, .baseform fieldset textarea:focus, .baseform fieldset input.active, .baseform fieldset textarea.active {
+  border: 1px solid #333333;
+}
+
+.baseform fieldset em {
+  color: #ff0000;
+  font-style: normal;
+}
+
+.baseform fieldset input.disabled {
+  background: #d4d0c8;
+  border: 2px solid #ccc;
+}
+
+.baseform fieldset label.readonly {
+  width: auto;
+  display: block;
+  color: #ff0000;
+  font-size: 10px;
+  line-height: 12px;
+  margin-left: 90px;
+  font-style: italic;
+  position: absolute;
+}
+
+.baseform fieldset label.error {
+  width: auto;
+  display: inline;
+  color: #ffffff;
+  font-size: 10px;
+  position: absolute;
+  display: inline;
+  -moz-border-radius: 5px;
+  padding: 7px;
+  background: #b41616;
+  font-weight: bold;
+  margin: 2px 0 0 10px;
+}
+
+.baseform fieldset .note {
+  font-size: 11px;
+  color: #808080;
+  margin: 0; 
+}
