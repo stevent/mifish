@@ -75,7 +75,7 @@ IF ( NOT Feedback.Has("Error") ) THEN
           sSQL = sSQL & " (Title)='" & UCASE(c_FormRequest("Title")) & "' "
           sSQL = sSQL & "OR "
           sSQL = sSQL & " ( "
-          sSQL = sSQL & "   Longitude LIKE '%" & sLongitude & "%' AND Latitude LIKE '%" &  sLatitude & "%' "
+          sSQL = sSQL & "   Longitude = '" & sLongitude & "' AND Latitude = '" &  sLatitude & "' "
           sSQL = sSQL & " ) "
 
           SET oRecord   = c_Waypoint.run("FindBySQL",sSQL)
