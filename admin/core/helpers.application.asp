@@ -692,4 +692,25 @@ FUNCTION setConditions(aConditions)
 
   setConditions = sQuery
 END FUNCTION
+
+'-------------------------------------------------------------------------------
+' Purpose:  Executes an sql script
+' Inputs:   sSQL      - DQL we are using
+'-------------------------------------------------------------------------------
+SUB executeSQL(sSQL)
+  DIM oConn
+  DIM rsExecute
+
+  IF ( bhaveInfo(sSQL) ) THEN
+    'Opens connection to the database
+    SET oConn = createConnection
+
+    'execute connection'
+    SET rsExecute = oConn.conn.EXECUTE(sSQL,,&H0001 + &H00000080)
+    SET rsExecute = NOTHING
+
+    'Release the database connection
+    SET oConn	= NOTHING
+  END IF
+END SUB
 %>

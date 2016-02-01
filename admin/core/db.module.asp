@@ -31,6 +31,7 @@ c_Module.SetVar("PrimaryKey")     = ""
 c_Module.SetVar("TreeStructure")  = ""
 c_Module.SetVar("TablePlural")    = ""
 c_Module.SetVar("Validation")     = SERVER.CREATEOBJECT("SCRIPTING.DICTIONARY")
+c_Module.SetVar("HasMany")        = ""
 
 '--------------------------------------------------------
 ' ON INITIALIZE
@@ -289,4 +290,42 @@ FUNCTION c_Module_SaveRecord(this,oParams)
   'return if its saved
   c_Module_SaveRecord = bSaved
 END FUNCTION : CALL c_Module.createMethod("SaveRecord",FALSE)
+
+
+'-------------------------------------------------------------------------------
+' Purpose:  Deletes the current object to the database
+' Inputs:	  this    - the current Table object
+'           oParams - any params we need to pass through for the function. Its
+'                     either an ID or a dictionary params object
+' Returns:	wether or not it was deleted
+'-------------------------------------------------------------------------------
+FUNCTION c_Module_DeleteRecord(this,oParams)
+  DIM iCount    : iCount    = 0
+  DIM bDeleted  : bDeleted  = FALSE
+  DIM sSQL
+  DIM rsRecordSet
+  DIM iID
+  DIM oNew, oTemp, oField
+  DIM aHasMany
+
+  iID = this.FieldValue(this.Var("PrimaryKey"))
+
+  'set up sql
+  sSQL = "DELETE FROM " & this.Var("Table") & " WHERE " & this.Var("PrimaryKey") & "=" & iReturnNumber(iID)
+  CALL executeSQL(sSQL)
+
+  bDeleted = TRUE
+
+  IF ( bHaveInfo(this.Var("HasMany")) ) THEN
+    aHasMany = SPLIT(this.Var("HasMany"),",")
+
+    FOR iCount = 0 TO UBOUND(aHasMany)
+      sSQL = "DELETE FROM " & aHasMany(iCount) & " WHERE " & this.Var("Table") & "ID=" & iReturnNumber(iID)
+      CALL executeSQL(sSQL)
+    NEXT
+  END IF
+
+  'return if its saved
+  c_Module_DeleteRecord = bDeleted
+END FUNCTION : CALL c_Module.createMethod("DeleteRecord",FALSE)
 %>

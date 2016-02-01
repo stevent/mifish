@@ -24,5 +24,7 @@ SUB APPLICATION_ONSTART
   'APPLICATION("ConString")                  = "Driver={MySQL ODBC 5.1 Driver};Server=localhost;uid=simplistik;pwd=u78FiU70Pi;database=simplistik;"
   'APPLICATION("ConString")                  = "DRIVER={SQL SERVER};SERVER=IMACVM-1A579161\SQLEXPRESS;uid=simplistik;pwd=u78FiU70Pi;database=simplistik"
 	APPLICATION("ConString")									= "PROVIDER=Microsoft.Jet.OLEDB.4.0;DATA SOURCE=" & SERVER.MAPPATH("\") & "\admin\database\database.mdb;"
+
+	APPLICATION("CacheStore")									= SERVER.MAPPATH("\cache")
 END SUB
 </SCRIPT>

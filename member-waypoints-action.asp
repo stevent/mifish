@@ -21,13 +21,16 @@ RESPONSE.BUFFER	= TRUE
 '	Runs actions for the member waypoint
 ' section'
 '***************************************
+
+SERVER.SCRIPTTIMEOUT = 1200
+
 %>
 <!--#include virtual="/admin/core/core.includes.asp"-->
 <%
 CALL Member.run("Login",NULL)
 CALL Member.run("SecurePage",NULL)
 
-DIM sAction     : sAction       = sReturnDefaultString(c_FormRequest("Action"),"unknown")
+DIM sAction     : sAction       = sReturnDefaultString(c_FormRequest("Action"),sReturnDefaultString(REQUEST.QUERYSTRING("Action"),"unknown"))
 DIM bBackToForm : bBackToForm   = FALSE
 DIM oRecord, oFile, oXMLDoc, sLog, sLogLine, oWaypoints
 DIM sSQL, sLongitude, sLatitude
@@ -115,6 +118,9 @@ SELECT CASE UCASE(sAction)
       CALL Feedback.setComplete()
       CALL Feedback.addToFeedback("<p>Succesfully created your new waypoint (" & oRecord.FieldValue("Title") & ").</p>")
 
+      'create JSON data file
+      CALL createJsonDataFile()
+
       IF ( bBackToForm ) THEN
         CALL Feedback.showFeedback("member-waypoints-form.asp")
       ELSE
@@ -130,6 +136,8 @@ SELECT CASE UCASE(sAction)
     END IF
 
   CASE "UPDATE"
+    CALL Feedback.setFeedbackAction("Update")
+
     SET oRecord   = c_Waypoint.run("FindByID",c_FormRequest("Id"))
 
     IF ( NOT oRecord IS NOTHING  ) THEN
@@ -137,6 +145,12 @@ SELECT CASE UCASE(sAction)
 
       IF ( oRecord.run("SaveRecord",NULL) ) THEN
         CALL saveSounderFields(sAction,oRecord)
+
+        CALL Feedback.setComplete()
+        CALL Feedback.addToFeedback("<p>Succesfully created your new waypoint (" & oRecord.FieldValue("Title") & ").</p>")
+
+        'create JSON data file
+        CALL createJsonDataFile()
 
         IF ( bBackToForm ) THEN
           CALL Feedback.showFeedback("member-waypoints-form.asp?id=" & oRecord.FieldValue("ID"))
@@ -177,84 +191,13 @@ SELECT CASE UCASE(sAction)
           sLogLine      = ""
 
           IF (  oXMLDoc.LOAD(oFile.PATH) ) THEN
-            DIM oWpt, oWptExt
-            DIM sName, sInternalID
-
-            'add to log'
-            sLog = sLog & "<p>XML Loaded succesfully.</p>"
-
-            FOR EACH oWpt IN oXMLDoc.documentElement.selectNodes("wpt")
-              'default'
-              sLogLine = ""
-
-              IF ( NOT oWpt.selectSingleNode("name") IS NOTHING ) THEN sName = oWpt.selectSingleNode("name").text
-
-              IF ( NOT oWpt.selectSingleNode("extensions") IS NOTHING ) THEN
-                SET oWptExt = oWpt.selectSingleNode("extensions")
-
-                IF ( NOT oWptExt.selectSingleNode("raymarine:GUID") IS NOTHING ) THEN
-                  sInternalID = oWptExt.selectSingleNode("raymarine:GUID").text
-                END IF
-              END IF
-
-              IF ( bHaveInfo(sInternalID) AND bHaveInfo(sInternalID) ) THEN
-                sSQL = "SELECT Waypoint.* "
-                sSQL = sSQL & "FROM Waypoint, WaypointSounderData "
-                sSQl = sSQL & "WHERE Waypoint.ID=WaypointSounderData.WaypointID "
-                sSQL = sSQL & "AND SounderFieldID=1 "
-                sSQL = sSQL & "AND ("
-                sSQL = sSQL & "       ( "
-                sSQL = sSQL & "         UCASE(Title)='" & UCASE(sName) & "' AND WaypointSounderData.[Value]='' "
-                sSQL = sSQL & "       ) "
-                sSQL = sSQL & "       OR "
-                sSQL = sSQL & "       ( "
-                sSQL = sSQL & "         WaypointSounderData.[Value]='" & UCASE(sInternalID) & "' "
-                sSQL = sSQL & "       ) "
-                sSQL = sSQL & "     ) "
-
-                SET oRecord   = c_Waypoint.run("FindBySQL",sSQL)
-
-                IF ( oRecord IS NOTHING  ) THEN
-                  SET oRecord   = c_Waypoint.run("New",NULL)
-
-                  'add to log line'
-                  sLogLine = sLogLine & "Waypoint " & sName & " with internal ID " & sInternalID & " was found. Data will be added"
-                ELSE
-                  'add to log line'
-                  sLogLine = sLogLine & "Waypoint " & sName & " with internal ID " & sInternalID & " was found. Data will be updated"
-                END IF
-
-                oRecord.SetValue("Title")       = sName
-                oRecord.SetValue("Type")        = 1
-                oRecord.SetValue("Longitude")   = oWpt.GetAttribute("lon")
-                oRecord.SetValue("Latitude")    = oWpt.GetAttribute("lat")
-
-                IF ( NOT oWpt.selectSingleNode("cmt") IS NOTHING ) THEN
-                  oRecord.SetValue("Notes")       = oWpt.selectSingleNode("cmt").text
-                END IF
-
-                oRecord.SetValue("MemberID")    = Member.FieldValue("ID")
-
-                IF ( oRecord.run("SaveRecord",NULL) ) THEN
-                  'add to log line'
-                  sLogLine = sLogLine & "<br /> - Was succesfully saved. Move on to adding specific ray marine fields."
-
-                  CALL saveSounderXML(oRecord,oWpt,oWptExt)
-                ELSE
-                  'add to log line'
-                  sLogLine = sLogLine & "<br /> - Was not saved. There was an error attempting to add the waypoint data."
-                END IF
-              ELSE
-                'add to log line'
-                sLogLine = sLogLine & "Issue with the name (" & sName & ") and internal id (" & sInternalID & ")."
-              END IF
-
-              'add to log'
-              sLog = sLog & "<p>" & sLogLine & "</p>"
-            NEXT
+            sLog = ImportRaymarineDragonflyGPX(oXMLDoc)
 
             CALL Feedback.setComplete()
             CALL Feedback.setFeedbackHeading("Import was Succesfully")
+
+            'create JSON data file
+            CALL createJsonDataFile()
           ELSE
             'add to log'
             sLog = sLog & "<p>Import file was not an XML file.</p>"
@@ -309,8 +252,37 @@ SELECT CASE UCASE(sAction)
       CALL Feedback.showFeedback("member-waypoints-feedback.asp")
     END IF
 
+  CASE "DEL"
+    CALL Feedback.setFeedbackAction("Delete")
+
+    SET oRecord   = c_Waypoint.run("FindByID",REQUEST.QUERYSTRING("Id"))
+
+    IF ( NOT oRecord IS NOTHING  ) THEN
+      IF ( oRecord.run("DeleteRecord",NULL) ) THEN
+        CALL Feedback.setComplete()
+        CALL Feedback.addToFeedback("<p>Succesfully deleted your waypoint</p>")
+
+        'create JSON data file
+        CALL createJsonDataFile()
+
+        CALL Feedback.showFeedback("member-waypoints.asp")
+      ELSE
+        CALL Feedback.addToFeedback("<p>unable to delete record.</p>")
+      END IF
+    ELSE
+      CALL Feedback.addToFeedback("<p>unable to find record.</p>")
+    END IF
+
+    CALL Feedback.setError()
+    CALL Feedback.showFeedback("member-waypoints-form.asp")
+
   CASE "UNKNOWN"
-    RESPONSE.WRITE "UNKNOWN<br />"
+    'add to log'
+    sLog = sLog & "<p>The selected action could not be found. It is unknown</p>"
+
+    CALL Feedback.setError()
+    CALL Feedback.setFeedbackHeading("Unknow Action")
+    CALL Feedback.showFeedback("member-waypoints-feedback.asp")
 
 END SELECT
 %>

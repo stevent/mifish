@@ -30,6 +30,7 @@ c_Waypoint.SetVar("TreeStructure")  = FALSE
 c_Waypoint.SetVar("Table")          = "Waypoint"
 c_Waypoint.SetVar("PrimaryKey")     = "ID"
 c_Waypoint.SetVar("TablePlural")    = "Waypoints"
+c_Waypoint.SetVar("HasMany")        = "WayPointSounderData"
 
 '-------------------------------------------------------------------------------
 ' Purpose:  finds all the waypoints for a specific member
