@@ -28,13 +28,20 @@ CALL Member.run("Login",NULL)
 CALL Member.run("SecurePage",NULL)
 
 'set SQL
-DIM iPageSize     : iPageSize       = 10
-DIM oTypes        : SET oTypes      = c_WaypointType.run("FindAll",NULL)
-DIM oParams
-DIM sOrderBy
+DIM iPageSize       : iPageSize       = 10
+DIM iCurrentPage    : iCurrentPage    = iReturnDefaultInt(REQUEST.QUERYSTRING("cp"),1)
+DIM sOrderBy        : sOrderBy        = sReturnDefaultString(REQUEST.QUERYSTRING("sOrderBy"),"Title ASC")
+DIM sQueryString    : sQueryString    = ""
+DIM sCurrentURL     : sCurrentURL     = "member-waypoints.asp"
+DIM sPaginationURL  : sPaginationURL  = sCurrentURL
+DIM oParams, oWaypoint, oTypes
+DIM sType
 
-sOrderBy = sReturnDefaultString(REQUEST.QUERYSTRING("sOrderBy"),"Title ASC")
+'Set Class Variables
+c_Waypoint.SetVar("PageSize")       = iPageSize
+c_Waypoint.SetVar("CurrentPage")    = iCurrentPage
 
+'create our find by params (if we need to)
 IF ( bHaveInfo(sOrderBy) ) THEN
   SET oParams     = oSetParams(ARRAY("conditions[]","order[]"))
 
@@ -44,10 +51,21 @@ ELSE
   oParams = Member.FieldValue("ID")
 END IF
 
+'find out waypoints'
 DIM oWaypoints    : SET oWaypoints  = c_Waypoint.run("FindByMember",oParams)
-DIM iRecordTotal  : iRecordTotal    = oWaypoints.COUNT
-DIM oWaypoint
-DIM sType
+DIM iRecordTotal  : iRecordTotal    = c_Waypoint.Var("RecordCount")
+DIM iPageCount    : iPageCount      = c_Waypoint.Var("PageCount")
+
+'Find our types
+SET oTypes  = c_WaypointType.run("FindAll",NULL)
+
+'set up query string
+IF ( iReturnInt(iPageSize) > 0 ) THEN sQueryString = sAddToQueryString(sQueryString,"cp","[@CP@]")
+IF ( bHaveInfo(sOrderBy) ) THEN sQueryString = sAddToQueryString(sQueryString,"sOrderBy",REQUEST.QUERYSTRING("sOrderBy"))
+
+'set url variables'
+sCurrentURL     = sCurrentURL & REPLACE(sQueryString,"[@CP@]",iCurrentPage)
+sPaginationURL  = sPaginationURL & sQueryString
 %>
 <!DOCTYPE HTML>
 <html lang="en">
@@ -146,8 +164,9 @@ NEXT
               <tfoot>
                 <tr>
                   <td colspan="6">
+                    <% CALL DisplayPagingNav(sPaginationURL,iPageSize,iCurrentPage,iRecordTotal) %>
                     <!-- <div class="pagination">
-                      <a class="button special small prev" href="#">Prev</a>
+
                       <a class="button special small num" href="#">1</a>
                       <a class="button special small num" href="#">2</a>
                       <a class="button special small num" href="#">3</a>

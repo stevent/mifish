@@ -52,7 +52,7 @@ FUNCTION c_Waypoint_FindByMember(this,oParams)
       IF ( ISARRAY(oParams.ITEM("order")) ) THEN sSQL = sSQL & " ORDER BY " & setConditions(oParams.ITEM("order"))
     END IF
   ELSE
-    iMemberID       = iReturnNumber(oParams)
+    iMemberID       = iReturnInt(oParams)
     SET oParams     = oSetParams(ARRAY("conditions[]","order[]"))
 
     oParams.ITEM("conditions")  = ARRAY("MemberID = " & setParamNumber(1),iMemberID)

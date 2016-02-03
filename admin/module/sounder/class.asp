@@ -59,7 +59,7 @@ FUNCTION c_Sounder_FindByMember(this,oParams)
       IF ( ISARRAY(oParams.ITEM("order")) ) THEN sSQL = sSQL & " ORDER BY " & setConditions(oParams.ITEM("order"))
     END IF
   ELSE
-    sSQL = sSQL & " AND MemberID=" & iReturnNumber(oParams)
+    sSQL = sSQL & " AND MemberID=" & iReturnInt(oParams)
     sSQL = sSQL & " ORDER BY Name"
   END IF
 

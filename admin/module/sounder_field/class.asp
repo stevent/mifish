@@ -51,9 +51,9 @@ FUNCTION c_SounderField_FindBySounder(this,oParams)
 
   'set up sql
   sSQL = "SELECT *, "
-  sSQL = sSQL & "(SELECT Value FROM WaypointSounderData WHERE WaypointSounderData.SounderFieldID=" & this.Var("Table") & ".ID AND WaypointID=" & iReturnNumber(iWaypointID) & ") AS FieldValue "
+  sSQL = sSQL & "(SELECT Value FROM WaypointSounderData WHERE WaypointSounderData.SounderFieldID=" & this.Var("Table") & ".ID AND WaypointID=" & iReturnInt(iWaypointID) & ") AS FieldValue "
   sSQL = sSQL & "FROM " & this.Var("Table") & " "
-  sSQL = sSQL & "WHERE " & this.Var("Table") & ".SounderID=" & iReturnNumber(iSounderID) & " "
+  sSQL = sSQL & "WHERE " & this.Var("Table") & ".SounderID=" & iReturnInt(iSounderID) & " "
 
   'return new Object
   SET c_SounderField_FindBySounder = this.run("Find",sSQL)
@@ -82,25 +82,25 @@ FUNCTION c_SounderField_SaveWaypointData(this,oParams)
     'set up sql
     sSQL = "SELECT * "
     sSQL = sSQL & "FROM WaypointSounderData "
-    sSQL = sSQL & "WHERE WaypointID=" & iReturnNumber(iWaypointID) & " "
-    sSQL = sSQL & "AND SounderID=" & iReturnNumber(iSounderID) & " "
-    sSQL = sSQL & "AND SounderFieldID=" & iReturnNumber(iSounderFieldID)
+    sSQL = sSQL & "WHERE WaypointID=" & iReturnInt(iWaypointID) & " "
+    sSQL = sSQL & "AND SounderID=" & iReturnInt(iSounderID) & " "
+    sSQL = sSQL & "AND SounderFieldID=" & iReturnInt(iSounderFieldID)
   ELSE
     iWaypointSounderData = oParams
 
     'set up sql
-    sSQL = "SELECT * FROM WaypointSounderData WHERE ID=" & iReturnNumber(iWaypointSounderData)
+    sSQL = "SELECT * FROM WaypointSounderData WHERE ID=" & iReturnInt(iWaypointSounderData)
   END IF
 
   SET rsRecordSet = createUpdateableRecordset(sSQL)
 
-  IF ( iReturnNumber(iSounderID) > 0 ) THEN rsRecordSet.SetValue("SounderID") = iSounderID
-  IF ( iReturnNumber(iWaypointID) > 0 ) THEN rsRecordSet.SetValue("WaypointID") = iWaypointID
-  IF ( iReturnNumber(iSounderFieldID) > 0 ) THEN rsRecordSet.SetValue("SounderFieldID") = iSounderFieldID
+  IF ( iReturnInt(iSounderID) > 0 ) THEN rsRecordSet.SetValue("SounderID") = iSounderID
+  IF ( iReturnInt(iWaypointID) > 0 ) THEN rsRecordSet.SetValue("WaypointID") = iWaypointID
+  IF ( iReturnInt(iSounderFieldID) > 0 ) THEN rsRecordSet.SetValue("SounderFieldID") = iSounderFieldID
 
   rsRecordSet.SetValue("Value") = this.FieldValue("FieldValue")
 
-  IF ( iReturnNumber(rsRecordSet.FieldValue("SounderID")) > 0 AND iReturnNumber(rsRecordSet.FieldValue("WaypointID")) > 0 AND iReturnNumber(rsRecordSet.FieldValue("SounderFieldID")) > 0 ) THEN
+  IF ( iReturnInt(rsRecordSet.FieldValue("SounderID")) > 0 AND iReturnInt(rsRecordSet.FieldValue("WaypointID")) > 0 AND iReturnInt(rsRecordSet.FieldValue("SounderFieldID")) > 0 ) THEN
     rsRecordSet.RS.UPDATE
 
     bSaved = TRUE

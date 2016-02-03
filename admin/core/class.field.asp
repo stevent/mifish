@@ -79,7 +79,7 @@ CLASS C_Like_Field
   PUBLIC PROPERTY LET FieldType(data) : m_FieldType = sReturnNull(data) : END PROPERTY
   PUBLIC PROPERTY LET PrimaryKey(data) : m_PrimaryKey = bReturnBoolean(data) : END PROPERTY
   PUBLIC PROPERTY LET Unique(data) : m_Unique = bReturnBoolean(data) : END PROPERTY
-  PUBLIC PROPERTY LET MaxSize(data) : m_MaxSize = iReturnNumber(data) : END PROPERTY
+  PUBLIC PROPERTY LET MaxSize(data) : m_MaxSize = iReturnInt(data) : END PROPERTY
 
   PUBLIC PROPERTY LET RequiredInDB(data)
     m_RequiredInDB  = bReturnBoolean(data)

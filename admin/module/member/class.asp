@@ -115,12 +115,12 @@ END SUB : CALL c_Member.createMethod("Login",FALSE)
 ' Returns:	a Member Object (either full of info or empty)
 '-------------------------------------------------------------------------------
 FUNCTION c_Member_GrabLoggedInMember(this,oParams)
-  DIM iID     : iID     = iReturnNumber(REQUEST.COOKIES(this.Var("MemberID_Cookie")))
+  DIM iID     : iID     = iReturnInt(REQUEST.COOKIES(this.Var("MemberID_Cookie")))
   DIM sSQL
   DIM oMember
 
   'set up sql
-  sSQL = "SELECT * FROM " & this.Var("Table") & " WHERE " & this.Var("PrimaryKey") & "=" & iReturnNumber(iID)
+  sSQL = "SELECT * FROM " & this.Var("Table") & " WHERE " & this.Var("PrimaryKey") & "=" & iReturnInt(iID)
 
   SET oMember = this.run("FindBySQL",sSQL)
 

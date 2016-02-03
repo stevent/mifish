@@ -111,11 +111,9 @@ END FUNCTION
 ' Inputs:	  Data that needs to be a number
 ' Returns:	A numeric value
 '-------------------------------------------------------------------------------
-FUNCTION iReturnNumber(numeric_value)
-  iReturnNumber = 0
-
+FUNCTION iReturnInt(numeric_value)
   'return result
-  IF ( bHaveInfo(numeric_value) AND ISNUMERIC(numeric_value) ) THEN iReturnNumber = INT(numeric_value)
+  iReturnInt = iReturnDefaultInt(numeric_value,0)
 END FUNCTION
 
 '-------------------------------------------------------------------------------
@@ -123,14 +121,16 @@ END FUNCTION
 ' Inputs:	  Data that needs to be a number
 ' Returns:	A numeric value
 '-------------------------------------------------------------------------------
-FUNCTION iReturnDefaultNumber(numeric_value,default_value)
-  iReturnDefaultNumber = 0
+FUNCTION iReturnDefaultInt(numeric_value,default_value)
+  DIM iTemp : iTemp = 0
 
-  IF ( iReturnNumber(numeric_value) > 0 ) THEN
-    iReturnDefaultNumber = INT(numeric_value)
-  ELSEIF (  iReturnNumber(default_value) > 0 ) THEN
-    iReturnDefaultNumber = INT(default_value)
+  IF ( bHaveInfo(default_value) AND ISNUMERIC(default_value) ) THEN iTemp = default_value
+
+  IF ( bHaveInfo(numeric_value) AND ISNUMERIC(numeric_value) ) THEN
+    iTemp = INT(numeric_value)
   END IF
+
+  iReturnDefaultInt = iTemp
 END FUNCTION
 
 '-------------------------------------------------------------------------------
@@ -356,43 +356,6 @@ FUNCTION bFoundInArray(sString,aArray)
   bFoundInArray = bTemp
 END FUNCTION
 
-'-------------------------------------------------------------------------------
-' Purpose:  Shows a paging navigation if we need one
-' Inputs:	  sURL      - URL for the pagination, must have [@IPAGENO@] to be replaced by
-'                       new page number
-'           iTopPage  - The top page
-'           iPageNo   - The current page we are on
-'-------------------------------------------------------------------------------
-SUB sShowPaging(sURL,iTopPage,iPageNo)
-  DIM iCount, iRangeSelect
-
-  IF ( iTopPage > 1 ) THEN
-    RESPONSE.WRITE "<div class=""pagination"">" & vbCrLf
-    RESPONSE.WRITE "  <ul class=""clearfix"">" & vbCrLf
-
-    'Display each of the Page numbers for quick access
-    FOR iCount = 1 TO iTopPage
-      ' Determine whether numbers are within range to be displayed
-      IF ( ( iPageNo ) < 5 ) THEN
-        iRangeSelect = (CINT(iCount) >= CINT(iPageNo+1) - (CINT(iPageNo+1) - 1)) AND (CINT(iCount) < CINT(iPageNo+1) + (11 - CINT(iPageNo+1)))
-      ELSE
-        iRangeSelect = ((CINT(iCount) >= CINT(iPageNo+1) - 6) AND (CINT(iCount) < CINT(iPageNo+1) + 6))
-      END IF
-
-      IF ( iRangeSelect ) THEN
-        'Only like to a page number if it's not the current page
-        IF ( iPageNo = iCount ) THEN
-          RESPONSE.WRITE "    <li><a href=""" & REPLACE(sURL,"[@IPAGENO@]",iCount) & """ class=""active"">" & iCount & "</a></li>" & vbCrLf
-        ELSE
-          RESPONSE.WRITE "    <li><a href=""" & REPLACE(sURL,"[@IPAGENO@]",iCount) & """>" & iCount & "</a></li>" & vbCrLf
-        END IF
-      END IF
-    NEXT
-
-    RESPONSE.WRITE "  </ul>" & vbCrLf
-    RESPONSE.WRITE "</div>" & vbCrLf
-  END IF
-END SUB
 
 '-------------------------------------------------------------------------------
 ' Purpose:  checks to see if a function exists
@@ -670,7 +633,7 @@ END FUNCTION
 
 FUNCTION replaceParamNumber(iNum,sSQL,sParam)
   IF ( bHaveInfo(sSQL) ) THEN
-    replaceParamNumber = REPLACE(sSQL,setParamNumber(iNum),sParam)
+    replaceParamNumber = REPLACE(sSQL,setParamNumber(iNum),sReturnString(sParam))
   END IF
 END FUNCTION
 
@@ -713,4 +676,80 @@ SUB executeSQL(sSQL)
     SET oConn	= NOTHING
   END IF
 END SUB
+
+'-------------------------------------------------------------------------------
+' Purpose:  To display paging navigation in a pre-determined format.
+' Inputs:	  sURL - the url. This will be used as a telplate for
+'						 the paging links. Iw will have an identifier [@CP@] so
+'						 we can replace it with the page no.
+'           iPageSize   - The current page size
+'           iCurrentPage     - The current page number we are on
+'           iTotalCount - The total amount of records in the recordset
+'-------------------------------------------------------------------------------
+SUB DisplayPagingNav(sURL,iPageSize,iCurrentPage,iTotalCount)
+  DIM iCount, iRangeSelect
+  DIM sSpacer
+
+  'do we need to page
+  IF ( iTotalCount > iPageSize ) THEN
+    'make sure page size has a number
+    IF ( NOT ISNUMERIC(iPageSize) OR NOT bHaveInfo(iPageSize) ) THEN
+      iPageSize = 6
+    ELSE
+      iPageSize = INT(iPageSize)
+    END IF
+
+    RESPONSE.WRITE "<div class=""pagination"">"
+    RESPONSE.WRITE "  <ul>"
+
+    'do we show the previouse
+    IF ( NOT iCurrentPage < 2 ) THEN
+      RESPONSE.WRITE "  <a class=""button special small prev"" href=""" & REPLACE(sURL,"[@CP@]",(iCurrentPage-1)) & """>Prev</a>"
+    END IF
+
+    'Display each of the Page numbers for quick access
+    FOR iCount = 1 TO FIX((iTotalCount-1) / iPageSize)+1
+      ' Determine whether numbers are within range to be displayed
+      IF ( (iCurrentPage ) < 5 ) THEN
+        iRangeSelect = (CINT(iCount) >= CINT(iCurrentPage+1) - (CINT(iCurrentPage+1) - 1)) AND (CINT(iCount) < CINT(iCurrentPage+1) + (11 - CINT(iCurrentPage+1)))
+      ELSE
+        iRangeSelect = ((CINT(iCount) >= CINT(iCurrentPage+1) - 6) AND (CINT(iCount) < CINT(iCurrentPage+1) + 6))
+      END IF
+
+      IF ( iRangeSelect ) THEN
+        'Only like to a page number if it's not the current page
+        IF ( iCurrentPage = iCount ) THEN
+          RESPONSE.WRITE "  <a class=""button special small num active"" href=""" & REPLACE(sURL,"[@CP@]",iCount) & """>" & iCount & "</a>"
+        ELSE
+          RESPONSE.WRITE "  <a class=""button special small num"" href=""" & REPLACE(sURL,"[@CP@]",iCount) & """>" & iCount & "</a>"
+        END IF
+
+        'set spacer
+        IF ( NOT bHaveInfo(sSpacer) ) THEN sSpacer = "&nbsp;|&nbsp;"
+      END IF
+    NEXT
+
+    IF ( iCurrentPage < FIX((iTotalCount-1) / iPageSize)+1 ) THEN
+      RESPONSE.WRITE "  <a class=""button special small next"" href=""" & REPLACE(sURL,"[@CP@]",(iCurrentPage+1)) & """>Next</a>"
+    END IF
+
+    RESPONSE.WRITE "</div>"
+  END IF
+END SUB
+
+FUNCTION sAddToQueryString(sQueryString,sName,sVal)
+  DIM sTemp : sTemp = ""
+
+  IF ( bHaveInfo(sName) AND bhaveInfo(sVal) ) THEN
+    IF ( bHaveInfo(sQueryString) ) THEN
+      sTemp = sTemp & "&"
+    ELSE
+      sTemp = sTemp & "?"
+    END IF
+
+    sTemp = sTemp & sName & "=" & sVal
+  END IF
+
+  sAddToQueryString = sQueryString & sTemp
+END FUNCTION
 %>

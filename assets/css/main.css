@@ -2808,6 +2808,14 @@
 			color: #ffffff !important;
 		}
 
+		input[type="submit"].special.active,input[type="submit"].special.active:hover,
+		input[type="reset"].special.active,input[type="reset"].special.active:hover,
+		input[type="button"].special.active,input[type="button"].special.active:hover,
+		.button.special.active,.button.special.active:hover {
+			background-color: #666;
+			color: #ffffff !important;
+		}
+
 			input[type="submit"].special:hover,
 			input[type="reset"].special:hover,
 			input[type="button"].special:hover,

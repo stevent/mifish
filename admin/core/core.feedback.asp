@@ -96,10 +96,10 @@ CLASS c_Feedback
     'Complete     = 4'
     'information  = 5'
 
-    IF ( iReturnNumber(iType) > 0 ) THEN
-      SELECT CASE iReturnNumber(iType)
+    IF ( iReturnInt(iType) > 0 ) THEN
+      SELECT CASE iReturnInt(iType)
         CASE 1,2,3,4,5
-          c_Type = iReturnNumber(iType)
+          c_Type = iReturnInt(iType)
 
       END SELECT
     END IF

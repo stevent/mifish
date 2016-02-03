@@ -32,6 +32,10 @@ c_Module.SetVar("TreeStructure")  = ""
 c_Module.SetVar("TablePlural")    = ""
 c_Module.SetVar("Validation")     = SERVER.CREATEOBJECT("SCRIPTING.DICTIONARY")
 c_Module.SetVar("HasMany")        = ""
+c_Module.SetVar("PageSize")       = NULL
+c_Module.SetVar("CurrentPage")    = NULL
+c_Module.SetVar("PageCount")      = 0
+c_Module.SetVar("RecordCount")    = 0
 
 '--------------------------------------------------------
 ' ON INITIALIZE
@@ -123,20 +127,48 @@ END FUNCTION : CALL c_Module.createMethod("New",TRUE)
 ' Returns:	A specific record based on the SQL passed through
 '-------------------------------------------------------------------------------
 FUNCTION c_Module_Find(this,sSQL)
-  DIM iCount : iCount = 0
+  DIM iCount    : iCount    = 0
+  DIM bPaginate : bPaginate = FALSE
+  DIM bStop
   DIM rsRecordSet
   DIM iRecordCount
   DIM oNew, oTemp, oField, oItems
   DIM sDictKey
+  DIM iPageSize, iCurrentPage, iPageCount
+
+  iPageSize     = iReturnInt(this.Var("PageSize"))
+  iCurrentPage  = iReturnInt(this.Var("CurrentPage"))
+
+  IF ( iPageSize > 0 AND iCurrentPage > 0 ) THEN bPaginate = TRUE
 
   SET rsRecordSet = createReadonlyRecordset(sSQL)
+
+  IF ( bPaginate ) THEN
+    'set recordcount
+    iRecordCount = rsRecordSet.RS.RECORDCOUNT
+    this.SetVar("RecordCount") = iRecordCount
+
+    ' Set the page size of the recordset
+    rsRecordSet.RS.PAGESIZE = iPageSize
+
+    ' Get the number of pages
+    iPageCount = rsRecordSet.RS.PAGECOUNT
+    this.SetVar("PageCount") = iPageCount
+
+    ' Position recordset to the correct page
+    rsRecordSet.RS.ABSOLUTEPAGE = iCurrentPage
+  END IF
 
   SET oItems = SERVER.CREATEOBJECT("SCRIPTING.DICTIONARY")
 
   'make sure we have records
   IF ( NOT rsRecordSet.RS.EOF ) THEN
+    IF ( bPaginate ) THEN
+      bStop = ( rsRecordSet.RS.ABSOLUTEPAGE <> iCurrentPage )
+    END IF
+
     'loop through recordset
-    DO WHILE ( NOT rsRecordSet.RS.EOF )
+    DO WHILE ( NOT rsRecordSet.RS.EOF AND NOT bStop )
       'increment record count by 1
       iRecordCount  = iRecordCount + 1
       icount        = 0
@@ -167,6 +199,10 @@ FUNCTION c_Module_Find(this,sSQL)
       CALL addToDictionatry(oItems,oNew,CSTR(sDictKey))
 
       rsRecordSet.RS.MOVENEXT
+
+      IF ( bPaginate AND NOT rsRecordSet.RS.EOF ) THEN
+        bStop = ( rsRecordSet.RS.ABSOLUTEPAGE <> iCurrentPage )
+      END IF
     LOOP
   END IF
 
@@ -212,7 +248,7 @@ FUNCTION c_Module_FindByID(this,oParams)
   iID = oParams
 
   'set up sql
-  sSQL = "SELECT * FROM " & this.Var("Table") & " WHERE " & this.Var("PrimaryKey") & "=" & iReturnNumber(iID)
+  sSQL = "SELECT * FROM " & this.Var("Table") & " WHERE " & this.Var("PrimaryKey") & "=" & iReturnInt(iID)
 
   'return new Object
   SET c_Module_FindByID = this.run("FindBySQL",sSQL)
@@ -267,7 +303,7 @@ FUNCTION c_Module_SaveRecord(this,oParams)
   iID = this.FieldValue(this.Var("PrimaryKey"))
 
   'set up sql
-  sSQL = "SELECT * FROM " & this.Var("Table") & " WHERE " & this.Var("PrimaryKey") & "=" & iReturnNumber(iID)
+  sSQL = "SELECT * FROM " & this.Var("Table") & " WHERE " & this.Var("PrimaryKey") & "=" & iReturnInt(iID)
 
   SET rsRecordSet = createUpdateableRecordset(sSQL)
 
@@ -311,7 +347,7 @@ FUNCTION c_Module_DeleteRecord(this,oParams)
   iID = this.FieldValue(this.Var("PrimaryKey"))
 
   'set up sql
-  sSQL = "DELETE FROM " & this.Var("Table") & " WHERE " & this.Var("PrimaryKey") & "=" & iReturnNumber(iID)
+  sSQL = "DELETE FROM " & this.Var("Table") & " WHERE " & this.Var("PrimaryKey") & "=" & iReturnInt(iID)
   CALL executeSQL(sSQL)
 
   bDeleted = TRUE
@@ -320,7 +356,7 @@ FUNCTION c_Module_DeleteRecord(this,oParams)
     aHasMany = SPLIT(this.Var("HasMany"),",")
 
     FOR iCount = 0 TO UBOUND(aHasMany)
-      sSQL = "DELETE FROM " & aHasMany(iCount) & " WHERE " & this.Var("Table") & "ID=" & iReturnNumber(iID)
+      sSQL = "DELETE FROM " & aHasMany(iCount) & " WHERE " & this.Var("Table") & "ID=" & iReturnInt(iID)
       CALL executeSQL(sSQL)
     NEXT
   END IF
