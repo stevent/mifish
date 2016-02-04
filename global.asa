@@ -14,12 +14,15 @@ SUB APPLICATION_ONSTART
 
   'set site url
   APPLICATION("SiteURL")                    = "http://localhost"
+
+  'set admin root'
   APPLICATION("AdminRoot")                  = "admin"
 
-	'cache store path'
-	APPLICATION("CacheStore")									= SERVER.MAPPATH("..\") & "\cache"
+  'cache store path'
+  APPLICATION("CacheStore")                 = SERVER.MAPPATH("\") & "\cache"
+
   'uploads path
-  APPLICATION("WaypointsUpload")          	= SERVER.MAPPATH("..\") & "\uploads\waypoints"
+  APPLICATION("WaypointsUpload")            = SERVER.MAPPATH("..\") & "\uploads\waypoints"
 
   'set site url
   'APPLICATION("ConString")                  = "Driver={MySQL ODBC 5.1 Driver};Server=localhost;uid=simplistik;pwd=u78FiU70Pi;database=simplistik;"

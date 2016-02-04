@@ -832,6 +832,18 @@
 			border-top: solid 2px _palette(border);
 		}
 
+		&.single-data {
+			border-left: 1px solid #e5e5e5;
+			border-right: 1px solid #e5e5e5;
+
+			tr td:last-child, th td:last-child {
+				width: 30%;
+			}
+			tr td:last-child, th td:last-child {
+				width: 70%;
+			}
+		}
+
 		&.alt {
 			border-collapse: separate;
 

@@ -309,7 +309,7 @@ SUB createJsonDataFile()
   SET oTypes      = c_WaypointType.run("FindAll",NULL)
 
   'set file name
-  sFileName = JsonWptFilename()
+  sFileName = MemberWptJsonFilename()
 
   'Prepare to open text file for reading
   SET oFSO = CREATEOBJECT("SCRIPTING.FILESYSTEMOBJECT")
@@ -342,6 +342,7 @@ SUB createJsonDataFile()
 
     'create line'
     sLineText = "{"
+    sLineText = sLineText & """id"": """ & oWpt.FieldValue("ID") & ""","
     sLineText = sLineText & """title"": """ & oWpt.FieldValue("Title") & ""","
     sLineText = sLineText & """lon"": """ & oWpt.FieldValue("Longitude") & ""","
     sLineText = sLineText & """lat"": """ & oWpt.FieldValue("Latitude") & ""","
@@ -364,7 +365,7 @@ SUB createJsonDataFile()
   SET oFSO = NOTHING
 END SUB
 
-FUNCTION JsonWptFilename()
-  JsonWptFilename = "waypoints-m" & Member.FieldValue("ID") & ".json"
+FUNCTION MemberWptJsonFilename()
+  MemberWptJsonFilename = "waypoints-m" & Member.FieldValue("ID") & ".json"
 END FUNCTION
 %>

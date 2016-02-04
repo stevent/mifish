@@ -2686,6 +2686,16 @@
 				border-top: 0;
 			}
 
+			table.single-data {
+				border-left: 1px solid #e5e5e5;
+				border-right: 1px solid #e5e5e5;
+			}
+			table.single-data tr td:last-child, table.single-data th td:last-child {
+				width: 30%;
+			}
+			table.single-data tr td:last-child, table.single-data th td:last-child {
+				width: 70%;
+			}
 /* Button */
 
 	input[type="submit"],
@@ -3870,3 +3880,14 @@
 		  padding: 0.35em;
 		}
 	}
+
+/* POPUP PAGES */
+body.popup #page-wrapper {
+	padding: 0 3em;
+}
+body.popup #main {
+	padding: 0;
+}
+body.popup #main > header {
+	margin: 0
+}

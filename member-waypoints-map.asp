@@ -67,11 +67,20 @@ DIM sType
 			<!-- Main -->
 			<section id="main" class="container 100%">
 				<header>
-					<h1>Waypoints</h1>
+					<h1>Map</h1>
 				</header>
 				<div class="box">
-          <p>map test</p>
-          <div id="map" style="width:100%; height: 400px;"></div>
+          <div id="map-toolbar">
+            <a href="#" class="hide_all">hide all</a> <a href="#" class="show_all">show all</a>
+          </div>
+          <div class="marker_container clearfix" style="width:100%; height: 400px; z-index: 100; position: relative;">
+            <div id="marker-list" style="width: 30%; float: left; height: 400px; background: #FFF; border: 1px solid #777; border-right: none; overflow: auto; overflow-x: hidden;">
+                <ul class="alt" style="padding: 2.5px;">
+
+                </ul>
+            </div>
+            <div id="map" style="width:70%; height: 400px; position: relative; float: left; border: 1px solid #777;"></div>
+          </div>
 				</div>
 			</section>
 
@@ -84,77 +93,7 @@ DIM sType
 		<!--#include virtual="/assets/views/footer-scripts.asp"-->
     <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js"></script>
     <script type="text/javascript" src="/assets/js/marker.cluster-comp.js"></script>
-    <script type="text/javascript" src="/cache/<%= JsonWptFilename %>"></script>
-
-    <script type="text/javascript">
-
-      var markerClusterer = null;
-      var map = null;
-      var imageUrl = 'http://chart.apis.google.com/chart?cht=mm&chs=24x32&' +
-          'chco=FFFFFF,008CFF,000000&ext=.png';
-
-      function refreshMap() {
-        if (markerClusterer) {
-          markerClusterer.clearMarkers();
-        }
-
-        var markers = [];
-
-        var markerImage = new google.maps.MarkerImage(imageUrl,
-          new google.maps.Size(24, 32));
-
-        if ( data.items.length > 0 ) {
-          var latlngbounds = new google.maps.LatLngBounds();
-
-          for (var i = 0; i < data.items.length; ++i) {
-
-            var latLng = new google.maps.LatLng(data.items[i].lat,data.items[i].lon)
-
-            latlngbounds.extend(latLng);
-
-            var marker = new google.maps.Marker({
-              position: latLng,
-              draggable: false,
-              icon: markerImage
-            });
-            markers.push(marker);
-          }
-
-          map.fitBounds(latlngbounds);
-        }
-
-        var size = 5
-
-        if ( markers.length > 0 ) {
-          markerClusterer = new MarkerClusterer(map, markers, {
-            gridSize: size
-          });
-        }
-      }
-
-      function initialize() {
-        map = new google.maps.Map(document.getElementById('map'), {
-          zoom: 2,
-          center: new google.maps.LatLng(39.91, 116.38),
-          mapTypeId: google.maps.MapTypeId.ROADMAP
-        });
-
-        //var refresh = document.getElementById('refresh-clusters');
-        //google.maps.event.addDomListener(refresh, 'click', refreshMap);
-
-        //var clear = document.getElementById('clear-clusters');
-        //google.maps.event.addDomListener(clear, 'click', clearClusters);
-
-        refreshMap();
-      }
-
-      function clearClusters(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        markerClusterer.clearMarkers();
-      }
-
-      google.maps.event.addDomListener(window, 'load', initialize);
-    </script>
+    <script type="text/javascript" src="/cache/<%= MemberWptJsonFilename %>"></script>
+    <script type="text/javascript" src="/assets/js/waypoint.marker.map.js"></script>
 	</body>
 </html>
