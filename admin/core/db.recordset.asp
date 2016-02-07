@@ -75,6 +75,7 @@ CLASS C_DBRecordset
       m_HaveRecords = TRUE
       m_Size        = m_recordset.RECORDCOUNT
     END IF
+
   END SUB
 
   PUBLIC SUB setUpdateableRecordset()

@@ -26,6 +26,7 @@ RESPONSE.BUFFER	= TRUE
 <%
 CALL Member.run("Login",NULL)
 CALL Member.run("SecurePage",NULL)
+
 %>
 <!DOCTYPE HTML>
 <html lang="en">
@@ -42,12 +43,16 @@ CALL Member.run("SecurePage",NULL)
 				<!--#include virtual="/assets/views/header.asp"-->
 			</header>
 
-			<!-- Main -->
-			<section id="main" class="container 100%">
-				<header>
-					<h1>Member Home</h1>
-				</header>
-			</section>
+  			<!-- Main -->
+  			<section id="main" class="container 100%">
+  				<header>
+  					<h1>Member Home</h1>
+  				</header>
+  				<div class="box">
+            <h2>Hi <%= Member.FieldValue("FirstName") %></h2>
+  				  <p>You are logged in to your fishing mark system.</P>
+  				</div>
+  			</section>
 
 			<!-- Footer -->
 			<footer id="footer">

@@ -42,33 +42,7 @@ c_Module.SetVar("RecordCount")    = 0
 '--------------------------------------------------------
 
 SUB c_Module_Initialize(this)
-  DIM iCount : iCount = 0
-  DIM rsRecordSet
-  DIM oTemp, oField
 
-  'crate db recordset
-  SET rsRecordSet = createReadonlyRecordset("SELECT * FROM " & this("Table") & " WHERE " & this("PrimaryKey") & "=0")
-
-  'loop through all the fields
-  FOR EACH oField IN rsRecordset.RS.Fields
-    'create a field object in temp variables
-    SET oTemp = NEW C_Like_Field
-
-    'add field properties and data
-    CALL addField(rsRecordset,oTemp,iCount)
-
-    'create new field
-    this.CreateField(oTemp.Name) = oTemp
-
-    'release temp object
-    SET oTemp = NOTHING
-
-    'incrememnt field index by 1
-    iCount = iCount + 1
-  NEXT
-
-  'release recordset
-  SET rsRecordSet = NOTHING
 END SUB
 
 '--------------------------------------------------------

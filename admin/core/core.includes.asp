@@ -10,6 +10,9 @@
 <!--#include file="class.klass.asp"-->
 <!--#include file="class.base.asp"-->
 <!--#include file="db.module.asp"-->
+
+<!--#include file="plugins/sha256/sha256.asp"-->
+
 <!--#include file="../module/helpers.asp"-->
 <!--#include file="../module/page/class.asp"-->
 <!--#include file="../module/member/class.asp"-->

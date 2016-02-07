@@ -94,6 +94,10 @@ CLASS C_Base
   '   Grabs specific Field Value
   '   RESPONSE.WRITE C_Base.FieldValue("FieldName")
 	PUBLIC DEFAULT FUNCTION FieldValue(sField)
+    DIM oItem
+    FOR EACH oItem IN Fields.ITEMS
+
+    NEXT
     'lets make sure the field exists
     IF ( Fields.EXISTS(CSTR(sField)) ) THEN
       FieldValue = Fields(CSTR(sField)).Value
@@ -101,6 +105,20 @@ CLASS C_Base
       'raise any errors
       PageError.RaiseError error_BaseFieldNotFound,"C_Base.FieldValue","The specific field does not exist (" & sField & ")"
     END IF
+	END FUNCTION
+
+  'FieldList()
+  '   Grabs Field list in object
+	PUBLIC FUNCTION FieldList()
+    DIM oItem
+    DIM sTemp
+
+    FOR EACH oItem IN Fields.ITEMS
+      IF ( bHaveInfo(sTemp) ) THEN sTemp = sTemp & ","
+      sTemp = sTemp & oItem.NAME
+    NEXT
+
+    FieldList = sTemp
 	END FUNCTION
 
   'Var(sVariable)
