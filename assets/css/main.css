@@ -2239,6 +2239,11 @@
 		opacity: 1.0;
 	}
 
+ .readonly {
+	 border: none!important;
+	 background: none!important;
+	 font-weight: bold;
+ }
 /* Box */
 
 	.box {

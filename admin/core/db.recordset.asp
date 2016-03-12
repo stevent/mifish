@@ -64,13 +64,17 @@ CLASS C_DBRecordset
   END SUB
 
   PUBLIC SUB setReadOnlyRecordset()
+ON ERROR RESUME NEXT
     m_recordset.ACTIVECONNECTION		  = m_connection.conn
     m_recordset.CURSORTYPE				    = 3	'adOpenStatic
     m_recordset.CURSORLOCATION			  = 3	'adUseClient
     m_recordset.LOCKTYPE				      = 3	'adLockOptimistic
     m_recordset.OPEN m_SQL
     SET m_recordset.ACTIVECONNECTION	= NOTHING
-
+IF ( ERR.NUMBER <> 0 ) THEN
+  RESPONSE.WRITE m_SQL
+  RESPONSE.END
+END IF
     IF ( NOT m_recordset.EOF ) THEN
       m_HaveRecords = TRUE
       m_Size        = m_recordset.RECORDCOUNT

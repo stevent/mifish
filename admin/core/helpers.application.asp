@@ -752,4 +752,186 @@ FUNCTION sAddToQueryString(sQueryString,sName,sVal)
 
   sAddToQueryString = sQueryString & sTemp
 END FUNCTION
+
+'-------------------------------------------------------------------------------
+' Purpose:  To format a date into a specific format.
+' Inputs:	sFormat	- the string the indicates the format that is required. See
+'				the PHP date() function or the comments below for more information.
+'				dDate		- the date that is to be formatted
+' Returns:	The formatted date.
+'-------------------------------------------------------------------------------
+FUNCTION dGetFormattedDate( sFormat, dDate )
+  DIM iCount
+  DIM bReserved
+  DIM sDate, sTemp, sChar
+  DIM arrFormat
+
+  'Ensure we have valid paramters before continuing
+  IF ( bHaveInfo(sFormat) AND bHaveInfo(dDate) AND ISDATE(dDate) ) THEN
+    'Reset the size of our array based on the length of our incoming format string
+    REDIM arrFormat(LEN(sFormat))
+
+    'Loop through our formatting string
+    FOR iCount=0 TO LEN(sFormat)-1
+      'Store this character in our array for later use
+      arrFormat(iCount) = MID(sFormat,iCount+1,1)
+    NEXT
+
+    'Loop through our array of characters
+    FOR iCount=0 TO LEN(sFormat)
+      'Reset our variable default
+      bReserved = FALSE
+
+      'Retrieve the character from the array
+      sChar = arrFormat(iCount)
+
+      'Check to see if we are at the start of the array or not
+      IF ( iCount > 0 ) THEN
+        'Check to see if this character is a reserved word
+        IF ( sChar = "\" ) THEN
+          'Set that this character is reserved so that it is not processed
+          bReserved = TRUE
+        END IF
+      END IF
+
+      'Do not process the character as it is reserved
+      IF ( NOT bReserved ) THEN
+        'Inspect the character to see if it matches what we are looking for
+        SELECT CASE sChar
+          'Day formatting
+          CASE "d": 'Day of the month, 2 digits with leading zeros (01 to 31)
+            sChar = sPrefixZero(DAY(dDate))
+
+          CASE "D": 'A textual representation of a day, three letters (Mon through Sun)
+            sChar = LEFT(WEEKDAYNAME(WEEKDAY(dDate)),3)
+
+          CASE "j": 'Day of the month without leading zeros (1 to 31)
+            sChar = DAY(dDate)
+
+          CASE "l": 'A full textual representation of the day of the week (Sunday through Saturday)
+            sChar = WEEKDAYNAME(WEEKDAY(dDate))
+
+          CASE "N": 'ISO-8601 numeric representation of the day of the week (1 for Monday, through 7 for Sunday)
+            sChar = WEEKDAY(dDate,2)
+
+          CASE "S": 'English ordinal suffix for the day of the month, 2 characters (st, nd, rd or th. Works well with j)
+            'Determine what our correct suffix is based on the final number of our day
+            SELECT CASE sPrefixZero(DAY(dDate))
+              CASE "01", "21", "31":
+                sChar = "st"
+              CASE "02", "22":
+                sChar = "nd"
+              CASE "03", "23":
+                sChar = "rd"
+              CASE ELSE
+                sChar = "th"
+            END SELECT
+
+          CASE "w": 'Numeric representation of the day of the week (0 for Sunday, through 6 for Saturday)
+            sChar = (WEEKDAY(dDate,1))-1
+
+          CASE "z": 'The day of the year (starting from 0 through 365)
+            sChar = DATEDIFF("d",DATESERIAL(YEAR(dDate),"01","01"),dDate)
+
+          'Month formatting
+          CASE "F": 'A full textual representation of a month, such as January or March (January through December)
+            sChar = MONTHNAME(MONTH(dDate),FALSE)
+
+          CASE "m": 'Numeric representation of a month, with leading zeros (01 through 12)
+            sChar = sPrefixZero(MONTH(dDate))
+
+          CASE "M": 'A short textual representation of a month, three letters (Jan through Dec)
+            sChar = MONTHNAME(MONTH(dDate),TRUE)
+
+          CASE "n": 'Numeric representation of a month, without leading zeros (1 through 12)
+            sChar = MONTH(dDate)
+
+          CASE "t": 'Number of days in the given month (28 through 31)
+            sChar = DAY(DATEADD("d",-1,DATEADD("m",1,DATESERIAL(YEAR(dDate),MONTH(dDate),1))))
+
+          'Year formatting
+          CASE "L": 'Whether it's a leap year (1 if it is a leap year, 0 otherwise.)s
+            'Determine if this year is a leap year or not
+            IF ( YEAR(dDate) MOD 400 = 0 ) THEN
+              sChar = 1
+            ELSEIF ( YEAR(dDate) MOD 100 = 0 ) THEN
+              sChar = 0
+            ELSEIF ( YEAR(dDate) MOD 4 = 0 ) THEN
+              sChar = 1
+            ELSE
+              sChar = 0
+            END IF
+
+          CASE "Y": 'A full numeric representation of a year, 4 digits (Examples: 1999 or 2003)
+            sChar = YEAR(dDate)
+
+          CASE "y": 'A two digit representation of a year (Examples: 99 or 03)
+            sChar = RIGHT(YEAR(dDate),2)
+
+          'Time formatting
+          CASE "a": 'Lowercase Ante meridiem and Post meridiem (am or pm)
+            sChar = LCASE(RIGHT(FORMATDATETIME(dDate,3),2))
+
+          CASE "A": 'Uppercase Ante meridiem and Post meridiem (AM or PM)
+            sChar = UCASE(RIGHT(FORMATDATETIME(dDate,3),2))
+
+          CASE "g": '12-hour format of an hour without leading zeros (1 through 12)
+            'Check to see what hour we currently have
+            IF ( HOUR(dDate) > 12 ) THEN
+              sChar = HOUR(dDate) - 12
+            ELSE
+              sChar = HOUR(dDate)
+            END IF
+
+          CASE "G": '24-hour format of an hour without leading zeros (0 through 23)
+            sChar = HOUR(dDate)
+
+          CASE "h": '12-hour format of an hour with leading zeros (01 through 12)
+            'Check to see what hour we currently have
+            IF ( HOUR(dDate) > 12 ) THEN
+              sChar = sPrefixZero(HOUR(dDate) - 12)
+            ELSE
+              sChar = sPrefixZero(HOUR(dDate))
+            END IF
+
+          CASE "H": '24-hour format of an hour with leading zeros (00 through 23)
+            sChar = sPrefixZero(HOUR(dDate))
+
+          CASE "i": 'Minutes with leading zeros (00 to 59)
+            sChar = sPrefixZero(MINUTE(dDate))
+
+          CASE "s": 'Seconds, with leading zeros (00 through 59)
+            sChar = sPrefixZero(SECOND(dDate))
+
+        END SELECT
+      END IF
+
+      'Append this character on to our string
+      sDate = sDate & sChar
+    NEXT
+  ELSE
+    sDate = ""
+  END IF
+
+  dGetFormattedDate = sDate
+END FUNCTION
+
+'-------------------------------------------------------------------------------
+' Purpose:  Prefixes a single number with a zero.
+' Inputs:	The string/number to be checked.
+' Returns:	The same value with a zero appended to the front if required.
+'-------------------------------------------------------------------------------
+FUNCTION sPrefixZero(sString)
+  DIM sTemp
+
+  'Take a copy of the passed in string before continuing
+  sTemp = sString
+
+  'Check the length of the string
+  IF ( LEN(TRIM(sTemp)) = 1 ) THEN
+    sTemp = "0" & sTemp
+  END IF
+
+  sPrefixZero = sTemp
+END FUNCTION
 %>

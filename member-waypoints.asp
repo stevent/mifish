@@ -32,9 +32,10 @@ DIM iPageSize       : iPageSize       = 10
 DIM iCurrentPage    : iCurrentPage    = iReturnDefaultInt(REQUEST.QUERYSTRING("cp"),1)
 DIM sOrderBy        : sOrderBy        = sReturnDefaultString(REQUEST.QUERYSTRING("sOrderBy"),"Title ASC")
 DIM sQueryString    : sQueryString    = ""
-DIM sCurrentURL     : sCurrentURL     = "member-waypoints.asp"
+DIM sDefaultURL     : sDefaultURL     = "member-waypoints.asp"
+DIM sCurrentURL     : sCurrentURL     = sDefaultURL
 DIM sPaginationURL  : sPaginationURL  = sCurrentURL
-DIM oParams, oWaypoint, oTypes
+DIM oParams, oWaypoint, oTypes, oCatches
 DIM sType
 
 'Set Class Variables
@@ -107,29 +108,29 @@ END IF
                 <tr>
                   <th>
                     <div class="order-by">
-                      <a class="asc<% IF ( sOrderBy = "Title ASC" ) THEN RESPONSE.WRITE " selected" %>" href="member-waypoints.asp?sOrderBy=Title ASC">ASC</a>
-                      <a class="desc<% IF ( sOrderBy = "Title DESC" ) THEN RESPONSE.WRITE " selected" %>" href="member-waypoints.asp?sOrderBy=Title DESC">DESC</a>
+                      <a class="asc<% IF ( sOrderBy = "Title ASC" ) THEN RESPONSE.WRITE " selected" %>" href="<%= sDefaultURL %>?sOrderBy=Title ASC">ASC</a>
+                      <a class="desc<% IF ( sOrderBy = "Title DESC" ) THEN RESPONSE.WRITE " selected" %>" href="<%= sDefaultURL %>?sOrderBy=Title DESC">DESC</a>
                     </div>
                     <span>Name</span>
                   </th>
                   <th>
                     <div class="order-by">
-                      <a class="asc<% IF ( sOrderBy = "Type ASC" ) THEN RESPONSE.WRITE " selected" %>" href="member-waypoints.asp?sOrderBy=Type ASC">ASC</a>
-                      <a class="desc<% IF ( sOrderBy = "Type DESC" ) THEN RESPONSE.WRITE " selected" %>" href="member-waypoints.asp?sOrderBy=Type DESC">DESC</a>
+                      <a class="asc<% IF ( sOrderBy = "Type ASC" ) THEN RESPONSE.WRITE " selected" %>" href="<%= sDefaultURL %>?sOrderBy=Type ASC">ASC</a>
+                      <a class="desc<% IF ( sOrderBy = "Type DESC" ) THEN RESPONSE.WRITE " selected" %>" href="<%= sDefaultURL %>?sOrderBy=Type DESC">DESC</a>
                     </div>
                     <span>Type</span>
                   </th>
                   <th>
                     <div class="order-by">
-                      <a class="asc<% IF ( sOrderBy = "Longitude ASC" ) THEN RESPONSE.WRITE " selected" %>" href="member-waypoints.asp?sOrderBy=Longitude ASC">ASC</a>
-                      <a class="desc<% IF ( sOrderBy = "Longitude Desc" ) THEN RESPONSE.WRITE " selected" %>" href="member-waypoints.asp?sOrderBy=Longitude DESC">DESC</a>
+                      <a class="asc<% IF ( sOrderBy = "Longitude ASC" ) THEN RESPONSE.WRITE " selected" %>" href="<%= sDefaultURL %>?sOrderBy=Longitude ASC">ASC</a>
+                      <a class="desc<% IF ( sOrderBy = "Longitude Desc" ) THEN RESPONSE.WRITE " selected" %>" href="<%= sDefaultURL %>?sOrderBy=Longitude DESC">DESC</a>
                     </div>
                     <span>Longitude</span>
                   </th>
                   <th>
                     <div class="order-by">
-                      <a class="asc<% IF ( sOrderBy = "Latitude ASC" ) THEN RESPONSE.WRITE " selected" %>" href="member-waypoints.asp?sOrderBy=Latitude ASC">ASC</a>
-                      <a class="desc<% IF ( sOrderBy = "Latitude DESC" ) THEN RESPONSE.WRITE " selected" %>" href="member-waypoints.asp?sOrderBy=Latitude DESC">DESC</a>
+                      <a class="asc<% IF ( sOrderBy = "Latitude ASC" ) THEN RESPONSE.WRITE " selected" %>" href="<%= sDefaultURL %>?sOrderBy=Latitude ASC">ASC</a>
+                      <a class="desc<% IF ( sOrderBy = "Latitude DESC" ) THEN RESPONSE.WRITE " selected" %>" href="<%= sDefaultURL %>?sOrderBy=Latitude DESC">DESC</a>
                     </div>
                     <span>Latitude</span>
                   </th>
@@ -148,6 +149,13 @@ FOR EACH oWaypoint IN oWaypoints.ITEMS
   IF ( oTypes.EXISTS(CSTR(oWaypoint.FieldValue("Type"))) ) THEN
     sType = oTypes.ITEM(CSTR(oWaypoint.FieldValue("Type"))).FieldValue("Name")
   END IF
+
+  'set catches params
+  SET oParams     = oSetParams(ARRAY("conditions[]","order[]"))
+  oParams.ITEM("conditions")  = ARRAY("MemberID = " & setParamNumber(1) & " AND WaypointID = " & setParamNumber(2),Member.FieldValue("ID"),oWaypoint.FieldValue("ID"))
+
+  'find out waypoints'
+  SET oCatches = c_WaypointCatch.run("FindAll",oParams)
 %>
                 <tr>
                   <td><%= oWaypoint.FieldValue("Title") %></td>
@@ -155,7 +163,7 @@ FOR EACH oWaypoint IN oWaypoints.ITEMS
                   <td><%= oWaypoint.FieldValue("Longitude") %></td>
                   <td><%= oWaypoint.FieldValue("Latitude") %></td>
                   <td><%= oWaypoint.FieldValue("Notes") %></td>
-                  <td><a href="#" title="View Waypoint">view</a> | <a href="member-waypoints-form.asp?id=<%= oWaypoint.FieldValue("ID") %>" title="Edit Waypoint">edit</a> | <a href="member-waypoints-action.asp?id=<%= oWaypoint.FieldValue("ID") %>&action=del" title="Deete Waypoint">delete</a></td>
+                  <td><a href="member-waypoints-catch.asp?WaypointID=<%= oWaypoint.FieldValue("ID") %>" title="Fish Caught (0)">fish caught (<%= oCatches.COUNT %>)</a> | <a href="member-waypoints-catch-form.asp?WaypointID=<%= oWaypoint.FieldValue("ID") %>" title="Add Catch">add catch</a> | <a href="#" title="View Waypoint">view</a> | <a href="member-waypoints-form.asp?id=<%= oWaypoint.FieldValue("ID") %>" title="Edit Waypoint">edit</a> | <a href="member-waypoints-action.asp?id=<%= oWaypoint.FieldValue("ID") %>&action=del" title="Deete Waypoint">delete</a></td>
                 </tr>
 <%
 NEXT
@@ -164,16 +172,15 @@ NEXT
               <tfoot>
                 <tr>
                   <td colspan="6">
+<%
+IF ( oWaypoints.COUNT = 0 ) THEN
+%>
+                    <div class="feedback">You currently have no waypoints</div>
+<%
+END IF
+%>
                     <% CALL DisplayPagingNav(sPaginationURL,iPageSize,iCurrentPage,iRecordTotal) %>
-                    <!-- <div class="pagination">
 
-                      <a class="button special small num" href="#">1</a>
-                      <a class="button special small num" href="#">2</a>
-                      <a class="button special small num" href="#">3</a>
-                      <a class="button special small num" href="#">4</a>
-                      <a class="button special small num" href="#">5</a>
-                      <a class="button special small next" href="#">Next</a>
-                    </div> -->
                     <div class="actions">
                       <a class="button small" href="member-waypoints-import.asp">import waypoint</a>
                       <a class="button small" href="member-waypoints-form.asp">add waypoint</a>

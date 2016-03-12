@@ -110,7 +110,7 @@ SELECT CASE UCASE(sAction)
 
     SET oRecord   = c_Waypoint.run("New",NULL)
 
-    CALL setFromForm(sAction,oRecord)
+    CALL setWaypointFromForm(sAction,oRecord)
 
     IF ( oRecord.run("SaveRecord",NULL) ) THEN
       CALL saveSounderFields(sAction,oRecord)
@@ -141,7 +141,7 @@ SELECT CASE UCASE(sAction)
     SET oRecord   = c_Waypoint.run("FindByID",c_FormRequest("Id"))
 
     IF ( NOT oRecord IS NOTHING  ) THEN
-      CALL setFromForm(sAction,oRecord)
+      CALL setWaypointFromForm(sAction,oRecord)
 
       IF ( oRecord.run("SaveRecord",NULL) ) THEN
         CALL saveSounderFields(sAction,oRecord)

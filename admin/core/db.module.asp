@@ -117,7 +117,7 @@ FUNCTION c_Module_Find(this,sSQL)
 
   SET rsRecordSet = createReadonlyRecordset(sSQL)
 
-  IF ( bPaginate ) THEN
+  IF ( bPaginate AND NOT rsRecordSet.RS.EOF ) THEN
     'set recordcount
     iRecordCount = rsRecordSet.RS.RECORDCOUNT
     this.SetVar("RecordCount") = iRecordCount
@@ -161,14 +161,15 @@ FUNCTION c_Module_Find(this,sSQL)
         'create new field
         oNew.CreateField(oTemp.Name) = oTemp
 
-        sDictKey = oNew.FieldValue("ID")
-
         'release temp object
         SET oTemp = NOTHING
 
         'incrememnt field index by 1
         iCount = iCount + 1
       NEXT
+
+      'set dict key'
+      sDictKey = oNew.FieldValue("ID")
 
       CALL addToDictionatry(oItems,oNew,CSTR(sDictKey))
 

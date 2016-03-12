@@ -24,7 +24,7 @@ RESPONSE.BUFFER	= TRUE
 ' Inputs:	  sAction - the action being performed
 '           oRecord - the waypoint record we are updating the sounder field data for.
 '-------------------------------------------------------------------------------
-SUB setFromForm(sAction,oRecord)
+SUB setWaypointFromForm(sAction,oRecord)
   DIM oLongitude      : SET oLongitude  = oConvertToDegree(NULL,"lon")
   DIM oLatitude       : SET oLatitude   = oConvertToDegree(NULL,"lat")
 
@@ -229,7 +229,7 @@ SUB createRaymarineDragonflyExport(oWaypoints,iSounderID)
 
   'Create the file that will store our valid results
   '											          Location																                          'Overwrite		'Unicode
-  SET oFile = oFSO.CREATETEXTFILE(SERVER.MAPPATH(APPLICATION("WaypointsUpload")) & "\" & sFileName, TRUE,			    FALSE)
+  SET oFile = oFSO.CREATETEXTFILE(APPLICATION("WaypointsUpload") & "\" & sFileName, TRUE,			    FALSE)
 
   oFile.WRITELINE "<?xml version=""1.0"" encoding=""UTF-8""?>"
   oFile.WRITELINE "<gpx xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" version=""1.1"" xmlns=""http://www.topografix.com/GPX/1/1"" creator=""Raymarine"" xmlns:raymarine=""http://www.raymarine.com"" xsi:schemaLocation=""http://www.raymarine.com http://raymarine.com/gpx_schema/RaymarineGPXExtensions.xsd http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd http://www.topografix.com/GPX/Private/TopoGrafix/0/1 http://www.topografix.com/GPX/Private/TopoGrafix/0/1/topografix.xsd"" xmlns:topografix=""http://www.topografix.com/GPX/Private/TopoGrafix/0/1"">"
@@ -279,14 +279,14 @@ SUB createRaymarineDragonflyExport(oWaypoints,iSounderID)
   RESPONSE.ADDHEADER "Content-Disposition", "filename=" & sFileName
 
   'Send the export information to the user
-  oUpload.SENDBINARY SERVER.MAPPATH(APPLICATION("WaypointsUpload")) & "\" & sFileName, FALSE
+  oUpload.SENDBINARY APPLICATION("WaypointsUpload") & "\" & sFileName, FALSE
 
   'Release our asp upload object
   SET oUpload = NOTHING
 
   'Check to see if the filename that we have selected already exists on the drive
-  IF ( oFSO.FILEEXISTS(SERVER.MAPPATH(APPLICATION("WaypointsUpload")) & "\" & sFileName) ) THEN
-    oFSO.DELETEFILE(SERVER.MAPPATH(APPLICATION("WaypointsUpload")) & "\" & sFileName)
+  IF ( oFSO.FILEEXISTS(APPLICATION("WaypointsUpload") & "\" & sFileName) ) THEN
+    oFSO.DELETEFILE(APPLICATION("WaypointsUpload") & "\" & sFileName)
   END IF
 
   'Release our filesystem resources

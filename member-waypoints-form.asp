@@ -221,6 +221,7 @@ FOR EACH oSounder IN oSounders.ITEMS
 %>
             <h3><%= oSounder.FieldValue("Name") %></h3>
 <%
+
   SET oSounderFields = c_SounderField.run("FindBySounder",oSetParams(ARRAY("iSounderID[" & oSounder.FieldValue("ID") & "]","iWaypointID[" & oWaypoint.FieldValue("ID") & "]")))
 
   FOR EACH oField IN oSounderFields.ITEMS

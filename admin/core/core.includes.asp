@@ -20,8 +20,11 @@
 <!--#include file="../module/waypoint_type/class.asp"-->
 <!--#include file="../module/sounder/class.asp"-->
 <!--#include file="../module/sounder_field/class.asp"-->
+<!--#include file="../module/fish/class.asp"-->
+<!--#include file="../module/waypoint_catch/class.asp"-->
 
 <!--#include file="../module/waypoint/helpers.asp"-->
+<!--#include file="../module/waypoint_catch/helpers.asp"-->
 <%
 'initialize global variables
 DIM p_oFso, p_oFolder, p_oSubFolder
