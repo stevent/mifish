@@ -37,13 +37,140 @@ SUB setWaypointFromForm(sAction,oRecord)
 
   oRecord.SetValue("Title")       = c_FormRequest("Title")
   oRecord.SetValue("Type")        = c_FormRequest("Type")
-  oRecord.SetValue("Longitude")   = iConvertToDecimal(oLongitude,"lon")
-  oRecord.SetValue("Latitude")    = iConvertToDecimal(oLatitude,"lat")
+  oRecord.SetValue("Longitude")   = iConvertToDecimal(oLongitude,"lon","DM-D")
+  oRecord.SetValue("Latitude")    = iConvertToDecimal(oLatitude,"lat","DM-D")
   oRecord.SetValue("Notes")       = c_FormRequest("Notes")
   oRecord.SetValue("MemberID")    = Member.FieldValue("ID")
 END SUB
 
 
+ '-------------------------------------------------------------------------------
+' Purpose:  Saves the sounder information from a csv file
+' Inputs:	sLatLongType - The Lat Long Type either DDMM.MMM or DDMMSS
+' Returns:  the Log of what has happened
+'-------------------------------------------------------------------------------
+FUNCTION ImportCSVFile(sLatLongType,oFile)
+  DIM iTypeLoc  : iTypeLoc  = 0
+  DIM iNameLoc  : iNameLoc  = 1
+  DIM iLatLoc   : iLatLoc   = 2
+  DIM iLatDLoc  : iLatDLoc  = 3
+  DIM iLongLoc  : iLongLoc  = 4
+  DIM iLonDLoc  : iLonDLoc  = 5
+  DIM iNoteLoc  : iNoteLoc  = 6
+  DIM aCSVLine, aCoord
+  DIM sCSVLine, sLog, sLogLine, sSQL
+  DIM iCnt, iType
+  DIM sName, sLat, sLatDir, sLon, sLonDir, sNotes
+  DIM oWpt, oWptExt, oRecord, oLat, oLon
+
+  'Loop through each line in the text file
+  DO WHILE ( NOT oFile.ATENDOFSTREAM )
+    'Read the current line from the text file	
+    sCSVLine = oFile.READLINE
+
+    'default
+    iType     = ""
+    sName     = ""
+    sLat      = ""
+    sLatDir   = ""
+    sLon      = ""
+    sLonDir   = ""
+    sNotes    = ""
+
+    'Split the line on the TAB character	
+    aCSVLine = SPLIT(sCSVLine, ",", -1, 0)
+
+    IF ( UBOUND(aCSVLine) => 5 ) THEN
+      iType   = aCSVLine(iTypeLoc)
+      sName   = aCSVLine(iNameLoc)
+      sLat    = aCSVLine(iLatLoc)
+      sLatDir = aCSVLine(iLatDLoc)
+      sLon    = aCSVLine(iLongLoc)
+      sLonDir = aCSVLine(iLonDLoc)
+      IF ( UBOUND(aCSVLine) => 6 ) THEN sNotes  = aCSVLine(iNoteLoc)
+
+      IF (UCASE(sLatLongType) = "DDMMSS" ) THEN
+        SET oLon = SERVER.CREATEOBJECT("Scripting.Dictionary")
+        SET oLat = SERVER.CREATEOBJECT("Scripting.Dictionary")
+
+        aCoord = SPLIT(sLat," ")
+
+        IF ( UBOUND(aCoord) = 2 ) THEN
+          CALL addToDictionatry(oLat,aCoord(0),"degrees")
+          CALL addToDictionatry(oLat,aCoord(1),"minutes")
+          CALL addToDictionatry(oLat,aCoord(2),"seconds")
+          CALL addToDictionatry(oLat,sLatDir,"dir")
+
+          sLat  = iConvertToDecimal(oLat,"lat","DMS-D")
+        ELSE
+          sLat = ""
+        END IF
+
+        aCoord = SPLIT(sLon," ")
+
+        IF ( UBOUND(aCoord) = 2 ) THEN
+          CALL addToDictionatry(oLon,aCoord(0),"degrees")
+          CALL addToDictionatry(oLon,aCoord(1),"minutes")
+          CALL addToDictionatry(oLon,aCoord(2),"seconds")
+          CALL addToDictionatry(oLon,sLonDir,"dir")
+
+          sLon  = iConvertToDecimal(oLon,"lon","DMS-D")
+        ELSE
+          sLon = ""
+        END IF
+      END IF
+
+
+      IF ( bHaveInfo(sLon) AND bHaveInfo(sLon) ) THEN
+        sSQL = "SELECT * "
+        sSQL = sSQL & "FROM Waypoint "
+        sSQL = sSQL & "WHERE MemberID=" & Member.FieldValue("ID") & " "
+        sSQL = sSQL & "AND ("
+        sSQL = sSQL & "       ( "
+        sSQL = sSQL & "         Longitude='" & sLon & "' AND Latitude='" & sLat & "' "
+        sSQL = sSQL & "       ) "
+        sSQL = sSQL & "     ) "
+
+        SET oRecord   = c_Waypoint.run("FindBySQL",sSQL)
+
+        IF ( oRecord IS NOTHING  ) THEN
+          SET oRecord   = c_Waypoint.run("New",NULL)
+
+          'add to log line'
+          IF ( bHaveInfo(sLogLine) ) THEN sLogLine = sLogLine & "<br />"
+          sLogLine = sLogLine & "Waypoint " & sName & " with co-ordinates of " & sLon & " " & sLonDir & " /" & sLat & " " & sLatDir & " was not found. Data will be added"
+        ELSE
+          'add to log line'
+          IF ( bHaveInfo(sLogLine) ) THEN sLogLine = sLogLine & "<br />"
+          sLogLine = sLogLine & "Waypoint " & sName & " with co-ordinates of " & sLon & " " & sLonDir & " /" & sLat & " " & sLatDir & " was found. Data will be updated"
+        END IF
+
+        oRecord.SetValue("Title")       = sName
+        oRecord.SetValue("Type")        = iType
+        oRecord.SetValue("Longitude")   = sLon
+        oRecord.SetValue("Latitude")    = sLat
+        oRecord.SetValue("Notes")       = sNotes
+        oRecord.SetValue("MemberID")    = Member.FieldValue("ID")
+
+        IF ( oRecord.run("SaveRecord",NULL) ) THEN
+          'add to log line'
+          IF ( bHaveInfo(sLogLine) ) THEN sLogLine = sLogLine & "<br />"
+          sLogLine = sLogLine & " - Was succesfully saved."
+        ELSE
+          'add to log line'
+          IF ( bHaveInfo(sLogLine) ) THEN sLogLine = sLogLine & "<br />"
+          sLogLine = sLogLine & " - Was not saved."
+        END IF
+      ELSE
+  
+      END IF
+    ELSE
+      'add to log line'
+      sLogLine = sLogLine & "Issue with the line data, not enough csv columns (" & sCSVLine & ")."
+    END IF
+  LOOP
+END FUNCTION
+ 
 '-------------------------------------------------------------------------------
 ' Purpose:  Saves the sounder field data frpm an xml object
 ' Inputs:	  oXML - The XML File Object we are importing
@@ -77,6 +204,7 @@ FUNCTION ImportRaymarineDragonflyGPX(oXML)
       sSQL = sSQL & "FROM Waypoint, WaypointSounderData "
       sSQl = sSQL & "WHERE Waypoint.ID=WaypointSounderData.WaypointID "
       sSQL = sSQL & "AND SounderFieldID=1 "
+      sSQL = sSQL & "AND MemberID=" & Member.FieldValue("ID") & " "
       sSQL = sSQL & "AND ("
       sSQL = sSQL & "       ( "
       sSQL = sSQL & "         UCASE(Title)='" & UCASE(sName) & "' AND ( WaypointSounderData.[Value]='' OR ISNULL(WaypointSounderData.[Value]) ) "

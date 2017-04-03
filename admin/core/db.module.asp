@@ -131,6 +131,10 @@ FUNCTION c_Module_Find(this,sSQL)
 
     ' Position recordset to the correct page
     rsRecordSet.RS.ABSOLUTEPAGE = iCurrentPage
+  ELSEIF ( NOT rsRecordSet.RS.EOF ) THEN
+    'set recordcount
+    iRecordCount = rsRecordSet.RS.RECORDCOUNT
+    this.SetVar("RecordCount") = iRecordCount
   END IF
 
   SET oItems = SERVER.CREATEOBJECT("SCRIPTING.DICTIONARY")
@@ -195,18 +199,22 @@ END FUNCTION : CALL c_Module.createMethod("Find",TRUE)
 ' Returns:	A specific record based on the SQL passed through
 '-------------------------------------------------------------------------------
 FUNCTION c_Module_FindBySQL(this,sSQL)
-  DIM oNew, oItems
+  DIM oReturn, oItems
 
   SET oItems = this.run("Find",sSQL)
 
   IF ( oItems.COUNT > 0 ) THEN
-    SET oNew = oItems.ITEMS()(0)
+    IF ( oItems.COUNT > 1 ) THEN
+      SET oReturn = oItems
+    ELSE
+      SET oReturn = oItems.ITEMS()(0)
+    END IF
   ELSE
-    SET oNew = NOTHING
+    SET oReturn = NOTHING
   END IF
 
   'return new Object
-  SET c_Module_FindBySQL = oNew
+  SET c_Module_FindBySQL = oReturn
 END FUNCTION : CALL c_Module.createMethod("FindBySQL",TRUE)
 
 '-------------------------------------------------------------------------------

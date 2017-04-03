@@ -89,13 +89,13 @@ IF ( Feedback.Has("Error") ) THEN
   oCoOrd.ITEM("degrees")          = Feedback.getField("LongitudeDegrese")
   oCoOrd.ITEM("minutes")          = Feedback.getField("LongitudeMinutes")
   oCoOrd.ITEM("dir")              = Feedback.getField("LongitudeDir")
-  oWaypoint.SetValue("Longitude") = iConvertToDecimal(oCoOrd,"lon")
+  oWaypoint.SetValue("Longitude") = iConvertToDecimal(oCoOrd,"lon","D")
 
   SET oCoOrd  = oConvertToDegree(NULL,"lat")
   oCoOrd.ITEM("degrees")          = Feedback.getField("LatitudeDegrees")
   oCoOrd.ITEM("minutes")          = Feedback.getField("LatitudeMinutes")
   oCoOrd.ITEM("dir")              = Feedback.getField("LatitudeDir")
-  oWaypoint.SetValue("Latitude")  = iConvertToDecimal(oCoOrd,"lat")
+  oWaypoint.SetValue("Latitude")  = iConvertToDecimal(oCoOrd,"lat","D")
 %>
           <div class="feedback error"><%= Feedback.Content %></div>
 <%

@@ -10,7 +10,7 @@ RESPONSE.BUFFER	= TRUE
 ' http://www.webfirm.com.au
 ' Ph: 1300 304 779
 '
-' File:				    member-waypoints.asp
+' File:				    member-waypoints-duplicate.asp
 ' Version:			  1.0
 ' Author:			    Steven Taddei
 ' Modified By:		Steven Taddei
@@ -28,37 +28,37 @@ CALL Member.run("Login",NULL)
 CALL Member.run("SecurePage",NULL)
 
 'set SQL
-DIM iPageSize       : iPageSize       = 50
+DIM iPageSize       : iPageSize       = NULL
 DIM iCurrentPage    : iCurrentPage    = iReturnDefaultInt(REQUEST.QUERYSTRING("cp"),1)
 DIM sOrderBy        : sOrderBy        = sReturnDefaultString(REQUEST.QUERYSTRING("sOrderBy"),"Title ASC")
 DIM sQueryString    : sQueryString    = ""
-DIM sDefaultURL     : sDefaultURL     = "member-waypoints.asp"
+DIM sQuery          : sQuery          = ""
+DIM sDefaultURL     : sDefaultURL     = "member-waypoints-duplicate.asp"
 DIM sCurrentURL     : sCurrentURL     = sDefaultURL
 DIM sPaginationURL  : sPaginationURL  = sCurrentURL
-DIM oParams, oWaypoint, oTypes, oCatches
+DIM oParams, oWaypoint, oCatches
 DIM sType
 
 'Set Class Variables
 c_Waypoint.SetVar("PageSize")       = iPageSize
 c_Waypoint.SetVar("CurrentPage")    = iCurrentPage
 
-'create our find by params (if we need to)
-IF ( bHaveInfo(sOrderBy) ) THEN
-  SET oParams     = oSetParams(ARRAY("conditions[]","order[]"))
-
-  oParams.ITEM("conditions")  = ARRAY("MemberID = " & setParamNumber(1),Member.FieldValue("ID"))
-  oParams.ITEM("order")       = ARRAY(sOrderBy)
-ELSE
-  oParams = Member.FieldValue("ID")
-END IF
+'set to nothing
+sQuery = ""
+sQuery = sQuery & "SELECT WptM.*, WptS.Title AS LinkTitle "
+sQuery = sQuery & "FROM Waypoint AS WptM "
+sQuery = sQuery & "INNER JOIN Waypoint AS WptS ON WptM.Longitude=WptS.Longitude AND WptM.Latitude=WptS.Latitude "
+sQuery = sQuery & "WHERE WptM.ID<>WptS.ID "
+sQuery = sQuery & "AND WptM.MemberID=" & Member.FieldValue("ID") & " "
+sQuery = sQuery & "ORDER BY WptM.Title"
 
 'find out waypoints'
-DIM oWaypoints    : SET oWaypoints  = c_Waypoint.run("FindByMember",oParams)
+DIM oWaypoints    : SET oWaypoints  = c_Waypoint.run("FindBySQL",sQuery)
 DIM iRecordTotal  : iRecordTotal    = c_Waypoint.Var("RecordCount")
 DIM iPageCount    : iPageCount      = c_Waypoint.Var("PageCount")
 
-'Find our types
-SET oTypes  = c_WaypointType.run("FindAll",NULL)
+'set to nothing
+sQueryString = ""
 
 'set up query string
 IF ( iReturnInt(iPageSize) > 0 ) THEN sQueryString = sAddToQueryString(sQueryString,"cp","[@CP@]")
@@ -72,7 +72,7 @@ sPaginationURL  = sPaginationURL & sQueryString
 <html lang="en">
   <head>
 		<base href="<%= APPLICATION("SiteURL") %>" />
-    <title>Wapoints | Members | MiFish Online</title>
+    <title>Duplicate Wapoints | Members | MiFish Online</title>
 
 		<!--#include virtual="/assets/views/scripts-styles.asp"-->
 	</head>
@@ -114,11 +114,7 @@ END IF
                     <span>Name</span>
                   </th>
                   <th>
-                    <div class="order-by">
-                      <a class="asc<% IF ( sOrderBy = "Type ASC" ) THEN RESPONSE.WRITE " selected" %>" href="<%= sDefaultURL %>?sOrderBy=Type ASC">ASC</a>
-                      <a class="desc<% IF ( sOrderBy = "Type DESC" ) THEN RESPONSE.WRITE " selected" %>" href="<%= sDefaultURL %>?sOrderBy=Type DESC">DESC</a>
-                    </div>
-                    <span>Type</span>
+                    <span>Linked To</span>
                   </th>
                   <th>
                     <div class="order-by">
@@ -134,22 +130,12 @@ END IF
                     </div>
                     <span>Latitude</span>
                   </th>
-                  <th>
-                    <span>Notes</span>
-                  </th>
                   <th>&nbsp;</th>
                 </tr>
               </thead>
               <tbody>
 <%
 FOR EACH oWaypoint IN oWaypoints.ITEMS
-  'default
-  sType = ""
-
-  IF ( oTypes.EXISTS(CSTR(oWaypoint.FieldValue("Type"))) ) THEN
-    sType = oTypes.ITEM(CSTR(oWaypoint.FieldValue("Type"))).FieldValue("Name")
-  END IF
-
   'set catches params
   SET oParams     = oSetParams(ARRAY("conditions[]","order[]"))
   oParams.ITEM("conditions")  = ARRAY("MemberID = " & setParamNumber(1) & " AND WaypointID = " & setParamNumber(2),Member.FieldValue("ID"),oWaypoint.FieldValue("ID"))
@@ -157,13 +143,24 @@ FOR EACH oWaypoint IN oWaypoints.ITEMS
   'find out waypoints'
   SET oCatches = c_WaypointCatch.run("FindAll",oParams)
 %>
-                <tr>
+                <tr> 
                   <td><%= oWaypoint.FieldValue("Title") %></td>
-                  <td><%= sType %></td>
+                  <td><%= oWaypoint.FieldValue("LinkTitle") %></td>
                   <td><%= oWaypoint.FieldValue("Longitude") %></td>
                   <td><%= oWaypoint.FieldValue("Latitude") %></td>
-                  <td><%= oWaypoint.FieldValue("Notes") %></td>
-                  <td><a href="member-waypoints-catch.asp?WaypointID=<%= oWaypoint.FieldValue("ID") %>" title="Fish Caught (<%= oCatches.COUNT %>)">fish caught (<%= oCatches.COUNT %>)</a> | <a href="member-waypoints-catch-form.asp?WaypointID=<%= oWaypoint.FieldValue("ID") %>" title="Add Catch">add catch</a> | <a href="member-waypoints-view.asp?id=<%= oWaypoint.FieldValue("ID") %>" title="View Waypoint">view</a> | <a href="member-waypoints-form.asp?id=<%= oWaypoint.FieldValue("ID") %>" title="Edit Waypoint">edit</a> | <a href="member-waypoints-action.asp?id=<%= oWaypoint.FieldValue("ID") %>&action=del" title="Deete Waypoint">delete</a></td>
+                  <td>
+                    <a href="member-waypoints-catch.asp?WaypointID=<%= oWaypoint.FieldValue("ID") %>" title="Fish Caught (<%= oCatches.COUNT %>)">fish caught (<%= oCatches.COUNT %>)</a> | 
+                    <a href="member-waypoints-catch-form.asp?WaypointID=<%= oWaypoint.FieldValue("ID") %>" title="Add Catch">add catch</a> | 
+                    <a href="member-waypoints-view.asp?id=<%= oWaypoint.FieldValue("ID") %>" title="View Waypoint">view</a> | 
+                    <a href="member-waypoints-form.asp?id=<%= oWaypoint.FieldValue("ID") %>" title="Edit Waypoint">edit</a> | 
+<%
+  IF ( oCatches.COUNT = 0 ) THEN
+%>
+                    <a href="member-waypoints-action.asp?id=<%= oWaypoint.FieldValue("ID") %>&action=del" title="Deete Waypoint">delete</a>
+<%
+  END IF 
+%>
+                  </td>
                 </tr>
 <%
 NEXT

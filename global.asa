@@ -28,5 +28,6 @@ SUB APPLICATION_ONSTART
   'APPLICATION("ConString")                  = "Driver={MySQL ODBC 5.1 Driver};Server=localhost;uid=simplistik;pwd=u78FiU70Pi;database=simplistik;"
   'APPLICATION("ConString")                  = "DRIVER={SQL SERVER};SERVER=IMACVM-1A579161\SQLEXPRESS;uid=simplistik;pwd=u78FiU70Pi;database=simplistik"
 	APPLICATION("ConString")									= "PROVIDER=Microsoft.Jet.OLEDB.4.0;DATA SOURCE=" & SERVER.MAPPATH("..\") & "\database\database.mdb;"
+	'APPLICATION("ConString")									= "DRIVER={Microsoft Access Driver (*.mdb, *.accdb)}; DBQ=" & SERVER.MAPPATH("..\") & "\database\database.accdb"
 END SUB
 </SCRIPT>

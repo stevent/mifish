@@ -56,9 +56,11 @@ DIM oSounder
 						<div class="row uniform 50%">
               <!-- Type, Title, Longitude, Latitude, Notes -->
 							<div class="12u">
-                <label>What Sounder</label>
+                <label>What Import</label>
                 <select name="SounderID" id="waypoints_sounderid">
                   <option value="">Select Type</option>
+                  <option value="DDMMSS">CSV DDMMSS</option>
+                  <option value="DDMM.MMM">CSV DDMM.MMM</option>
 <%
 FOR EACH oSounder IN oSounders.ITEMS
 %>

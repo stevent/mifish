@@ -63,13 +63,20 @@ FUNCTION oConvertToDegree(sDecimal,sType)
   SET oConvertToDegree = oTemp
 END FUNCTION
 
-FUNCTION iConvertToDecimal(oCoOrd,sType)
+FUNCTION iConvertToDecimal(oCoOrd,sType,sConType)
   DIM sDegrees    : sDegrees  = ""
   DIM sMinutes    : sMinutes  = ""
   DIM sSeconds    : sSeconds  = ""
   DIM sDir        : sDir      = ""
   DIM sToString   : sToString = ""
   DIM iDecimal    : iDecimal  = NULL
+
+  'sConType info'
+  'DMS to D.d   : sConType  =  DMS-D
+  'DMS to DM.m  : sConType  =  DMS-DM
+  'DM.m to D.d  : sConType  =  DM-D
+
+  IF ( NOT bHaveInfo(sConType) ) THEN sConType = "DMS-D"
 
   IF ( bIsDictionary(oCoOrd) ) THEN
     IF ( oCoOrd.EXISTS("degrees") ) THEN sDegrees = oCoOrd.ITEM("degrees")
@@ -78,22 +85,58 @@ FUNCTION iConvertToDecimal(oCoOrd,sType)
     IF ( oCoOrd.EXISTS("string") ) THEN sToString = oCoOrd.ITEM("string")
     IF ( oCoOrd.EXISTS("dir") ) THEN sDir = oCoOrd.ITEM("dir")
 
-    IF ( bHaveInfo(oCoOrd.ITEM("minutes")) AND ISNUMERIC(oCoOrd.ITEM("minutes")) ) THEN
-      iDecimal = (oCoOrd.ITEM("minutes") / 60)
+    SELECT CASE UCASE(sConType)
+      CASE "DMS-DM"
+        'Decimal Degrees = Degrees + .d
+        IF ( bHaveInfo(oCoOrd.ITEM("minutes")) AND ISNUMERIC(oCoOrd.ITEM("minutes")) ) THEN
+          IF ( bHaveInfo(oCoOrd.ITEM("degrees")) AND ISNUMERIC(oCoOrd.ITEM("degrees")) ) THEN
+            IF ( bHaveInfo(oCoOrd.ITEM("seconds")) AND ISNUMERIC(oCoOrd.ITEM("seconds")) ) THEN
+              iDecimal = oCoOrd.ITEM("degrees") & " " & FORMATNUMBER(( oCoOrd.ITEM("minutes") + (oCoOrd.ITEM("seconds")/60)),7)
+            END IF
+          END IF
+        END IF
 
-      IF ( bHaveInfo(oCoOrd.ITEM("degrees")) AND ISNUMERIC(oCoOrd.ITEM("degrees")) ) THEN
-        iDecimal = iDecimal + oCoOrd.ITEM("degrees")
+        SELECT CASE UCASE(sDir)
+          CASE "W","S"
+            iDecimal = "-" & iDecimal
+
+        END SELECT
+
+      CASE "DMS-D"
+        'IF ( bHaveInfo(oCoOrd.ITEM("minutes")) AND ISNUMERIC(oCoOrd.ITEM("minutes")) ) THEN
+        '  iDecimal = (oCoOrd.ITEM("minutes") / 60)
+
+        '  IF ( bHaveInfo(oCoOrd.ITEM("degrees")) AND ISNUMERIC(oCoOrd.ITEM("degrees")) ) THEN
+        '    iDecimal = iDecimal + oCoOrd.ITEM("degrees")
+        '  END IF
+        'END IF
+        IF ( bHaveInfo(oCoOrd.ITEM("minutes")) AND ISNUMERIC(oCoOrd.ITEM("minutes")) ) THEN
+          IF ( bHaveInfo(oCoOrd.ITEM("degrees")) AND ISNUMERIC(oCoOrd.ITEM("degrees")) ) THEN
+            IF ( bHaveInfo(oCoOrd.ITEM("seconds")) AND ISNUMERIC(oCoOrd.ITEM("seconds")) ) THEN
+              iDecimal = FORMATNUMBER(oCoOrd.ITEM("degrees") + (oCoOrd.ITEM("minutes")/60) + (oCoOrd.ITEM("seconds")/3600),7)
+            END IF
+          END IF
+        END IF
+        SELECT CASE UCASE(sDir)
+          CASE "W","S"
+            iDecimal = iDecimal - (iDecimal*2)
+
+        END SELECT
+
+    CASE "DM-D"
+      IF ( bHaveInfo(oCoOrd.ITEM("minutes")) AND ISNUMERIC(oCoOrd.ITEM("minutes")) ) THEN
+        iDecimal = (oCoOrd.ITEM("minutes") / 60)
+
+        IF ( bHaveInfo(oCoOrd.ITEM("degrees")) AND ISNUMERIC(oCoOrd.ITEM("degrees")) ) THEN
+          iDecimal = FORMATNUMBER(iDecimal + oCoOrd.ITEM("degrees"),7)
+        END IF
       END IF
-    END IF
 
-    'Degrees Minutes.m to Decimal Degrees
-    ''.d = M.m / 60
-    'Decimal Degrees = Degrees + .d
+      SELECT CASE UCASE(sDir)
+        CASE "W","S"
+          iDecimal = iDecimal - (iDecimal*2)
 
-    SELECT CASE UCASE(sDir)
-      CASE "W","S"
-        iDecimal = iDecimal - (iDecimal*2)
-
+      END SELECT
     END SELECT
   END IF
 

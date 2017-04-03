@@ -934,4 +934,20 @@ FUNCTION sPrefixZero(sString)
 
   sPrefixZero = sTemp
 END FUNCTION
+
+'-------------------------------------------------------------------------------
+' Purpose:  Replace single quotations with double quotes for use in SQL queries
+' Inputs:	The string to be processed
+' Returns:	The processed value
+'-------------------------------------------------------------------------------
+FUNCTION sSQLSafe(sData)
+  DIM sTemp
+
+  'Only continue if we have data
+  IF ( bHaveInfo(sData) ) THEN
+    sTemp = REPLACE(sData,"'","''")
+  END IF
+
+  sSQLSafe = sTemp
+END FUNCTION
 %>

@@ -32,9 +32,14 @@ CALL Member.run("SecurePage",NULL)
 
 DIM sAction     : sAction       = sReturnDefaultString(c_FormRequest("Action"),sReturnDefaultString(REQUEST.QUERYSTRING("Action"),"unknown"))
 DIM bBackToForm : bBackToForm   = FALSE
-DIM oRecord, oFile, oXMLDoc, sLog, sLogLine, oWaypoints
+DIM oRecord, oFile, oXMLDoc, sLog, sLogLine, oWaypoints, oFSO
 DIM sSQL, sLongitude, sLatitude
 DIM oLongitude, oLatitude
+DIM iCount
+
+'CSV variables
+DIM aCSVLine
+DIM sCSVLine
 
 CALL Feedback.setDefaults()
 
@@ -62,15 +67,15 @@ IF ( NOT Feedback.Has("Error") ) THEN
 
         IF ( _
               bHaveInfo(c_FormRequest("Title")) AND _
-              bHaveInfo(iConvertToDecimal(oLongitude,"lon")) AND _
-              bHaveInfo(iConvertToDecimal(oLatitude,"lat")) _
+              bHaveInfo(iConvertToDecimal(oLongitude,"lon","DM-D")) AND _
+              bHaveInfo(iConvertToDecimal(oLatitude,"lat","DM-D")) _
          ) THEN
 
-         sLongitude  = iConvertToDecimal(oLongitude,"lon")
-         sLatitude   = iConvertToDecimal(oLatitude,"lat")
+         sLongitude  = iConvertToDecimal(oLongitude,"lon","DM-D")
+         sLatitude   = iConvertToDecimal(oLatitude,"lat","DM-D")
 
-         'IF ( LEN(iConvertToDecimal(oLongitude,"lon")) > 10 ) THEN sLongitude = LEFT(iConvertToDecimal(oLongitude,"lon"),10)
-         'IF ( LEN(iConvertToDecimal(oLatitude,"lat")) > 9 ) THEN sLatitude = LEFT(iConvertToDecimal(oLatitude,"lat"),9)
+         'IF ( LEN(iConvertToDecimal(oLongitude,"lon")) > 10 ) THEN sLongitude = LEFT(iConvertToDecimal(oLongitude,"lon","DM-D"),10)
+         'IF ( LEN(iConvertToDecimal(oLatitude,"lat")) > 9 ) THEN sLatitude = LEFT(iConvertToDecimal(oLatitude,"lat","DM-D"),9)
 
           sSQL = "SELECT * "
           sSQL = sSQL & "FROM Waypoint "
@@ -173,18 +178,38 @@ SELECT CASE UCASE(sAction)
 
     'Loop through all of the files in our upload object
     FOR EACH oFile IN c_FormFiles
-    	'import to waypoint import directory
-    	oFile.SAVEAS SERVER.MAPPATH(APPLICATION("WaypointsUpload")) & "\" & sFileFriendly(oFile.FileName)
+      'import to waypoint import directory
+      oFile.SAVEAS APPLICATION("WaypointsUpload") & "\" & oFile.FileName
     NEXT
 
     IF ( NOT c_FormFiles("ImportFile") IS NOTHING ) THEN
-      SET oFile = c_FormFiles("ImportFile")
-
       'add to log'
       sLog = sLog & "<p>File succesfully uploaded and found.</p>"
 
       SELECT CASE CSTR(c_FormRequest("SounderID"))
+        CASE "DDMMSS","DDMM.MMM" 'CSV Import
+          'Prepare to open text file for reading
+          SET oFSO = CREATEOBJECT("SCRIPTING.FILESYSTEMOBJECT")
+
+          'Open the file for reading
+          SET oFile = c_FormFiles("ImportFile")
+
+          SET oFile = oFSO.OPENTEXTFILE(APPLICATION("WaypointsUpload") & "\" & oFile.FileName, 1)
+
+          sLog = ImportCSVFile(c_FormRequest("SounderID"),oFile)
+
+          'release objects
+          SET oFSO  = NOTHING
+          SET oFile = NOTHING
+
+          CALL Feedback.setComplete()
+          CALL Feedback.setFeedbackHeading("Import was Succesfully")
+
+          'create JSON data file
+          CALL createJsonDataFile()
+
         CASE "1" 'Raymarine Dragonfly
+          SET oFile     = c_FormFiles("ImportFile")
           SET oXMLDoc   = SERVER.CREATEOBJECT("MSXML2.DOMDocument.3.0")
           oXMLDoc.ASYNC = FALSE
           sLog          = ""
@@ -224,7 +249,9 @@ SELECT CASE UCASE(sAction)
     IF ( bHaveInfo(c_FormRequest("SounderID")) ) THEN
       SELECT CASE CSTR(c_FormRequest("SounderID"))
         CASE "1" 'Raymarine Dragonfly
-          SET oWaypoints  = c_Waypoint.run("FindByMember",Member.FieldValue("ID"))
+          DIM oParams : SET oParams     = oSetParams(ARRAY("conditions[]","order[]"))
+          oParams.ITEM("conditions")  = ARRAY("MemberID = " & setParamNumber(1) & " AND ID > " & setParamNumber(2),Member.FieldValue("ID"),1159)
+          SET oWaypoints  = c_Waypoint.run("FindByMember",oParams)
 
           CALL createRaymarineDragonflyExport(oWaypoints,c_FormRequest("SounderID"))
           CALL Feedback.setComplete()
